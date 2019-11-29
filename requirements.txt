@@ -3,3 +3,5 @@ tqdm
 optuna
 pytorch
 torchvision
+opencv-python
+numpy
