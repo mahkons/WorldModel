@@ -8,7 +8,7 @@ import argparse
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--episodes', type=int, default=1, required=False)
+    parser.add_argument('--epochs', type=int, default=1, required=False)
     parser.add_argument('--show', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     parser.add_argument('--steps', type=int, default=10**10, required=False)
     return parser 
@@ -17,13 +17,14 @@ def create_parser():
 def get_action(env):
     return env.action_space.sample()
 
+
 if __name__ == "__main__":
     env = gym.make("CarRacing-v0")
     args = create_parser().parse_args()
 
-    pbar = tqdm(range(args.episodes))
+    pbar = tqdm(range(args.epochs))
     for episode in pbar:
-        pbar.set_description("Episode [{}/{}]".format(episode + 1, args.episodes))
+        pbar.set_description("Episode [{}/{}]".format(episode + 1, args.epochs))
 
         obs = env.reset()
         for t in range(args.steps):

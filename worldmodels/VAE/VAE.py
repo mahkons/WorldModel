@@ -2,8 +2,21 @@ import typing
 
 import torch
 import torch.nn as nn
-from torch.nn import functional as f
+from torch.nn import functional as F
 from torchvision.transforms.functional import to_tensor
+
+class Flatten(nn.Module):
+    def forward(self, input):
+        return input.view(input.size(0), -1)
+
+
+class UnFlatten(nn.Module):
+    def __init__(self, size):
+        super().__init__()
+        self.size = size
+
+    def forward(self, input):
+        return input.view(-1, self.size, 1, 1)
 
 
 class VAE(nn.Module):
@@ -14,72 +27,83 @@ class VAE(nn.Module):
 
     def __init__(
             self,
-            image_height: int = 56,
+            image_height: int = 64,
             image_width: int = 64,
             image_channels: int = 3,
+            h_dim: int = 1024,
             z_dim: int = 32,
             device: str = "cpu"
     ):
-        super().__init__()
+        super(VAE, self).__init__()
         self.device = device
         self.h = image_height
         self.w = image_width
         self.c = image_channels
+        self.h_dim = h_dim
         self.z_dim = z_dim
 
-        self.en_cnn1 = nn.Conv2d(in_channels=self.c, out_channels=32, kernel_size=3, stride=2)
-        self.en_cnn2 = nn.Conv2d(in_channels=32, out_channels=64, kernel_size=2, stride=2)
-        self.en_cnn3 = nn.Conv2d(in_channels=64, out_channels=128, kernel_size=2, stride=1)
-
-        self.en_dense_mu1 = nn.Linear(in_features=21504, out_features=self.z_dim)
-        self.en_dense_s1 = nn.Linear(in_features=21504, out_features=self.z_dim)
-
-        self.de_dense1 = nn.Linear(in_features=self.z_dim, out_features=12544)
-        self.de_deconv1 = nn.ConvTranspose2d(in_channels=256, out_channels=128, kernel_size=(2, 4), stride=2)
-        self.de_deconv2 = nn.ConvTranspose2d(in_channels=128, out_channels=64, kernel_size=2, stride=2)
-        self.de_deconv3 = nn.ConvTranspose2d(in_channels=64, out_channels=self.c, kernel_size=2, stride=2)
+        self.encoder = nn.Sequential(
+            nn.Conv2d(image_channels, 32, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(64, 128, kernel_size=4, stride=2),
+            nn.ReLU(),
+            nn.Conv2d(128, 256, kernel_size=4, stride=2),
+            nn.ReLU(),
+            Flatten()
+        )
+        
+        self.fc1 = nn.Linear(h_dim, z_dim)
+        self.fc2 = nn.Linear(h_dim, z_dim)
+        self.fc3 = nn.Linear(z_dim, h_dim)
+        
+        self.decoder = nn.Sequential(
+            UnFlatten(h_dim),
+            nn.ConvTranspose2d(h_dim, 128, kernel_size=5, stride=2),
+            nn.ReLU(),
+            nn.ConvTranspose2d(128, 64, kernel_size=5, stride=2),
+            nn.ReLU(),
+            nn.ConvTranspose2d(64, 32, kernel_size=6, stride=2),
+            nn.ReLU(),
+            nn.ConvTranspose2d(32, image_channels, kernel_size=6, stride=2),
+            nn.Sigmoid(),
+        )
 
         self.to(self.device)
 
-    def encode(self, x: torch.Tensor):
-        x = x.to(self.device)
-        x = f.relu(self.en_cnn1(x))
-        x = f.relu(self.en_cnn2(x))
-        x = f.relu(self.en_cnn3(x))
-        x = x.view(x.size(0), -1)
+    def bottleneck(self, h):
+        mu, logvar = self.fc1(h), self.fc2(h)
+        z = self.reparameterize(mu, logvar)
+        return z, mu, logvar
 
-        mu = self.en_dense_mu1(x)
-        logstd = self.en_dense_s1(x)
+    def encode(self, x):
+        h = self.encoder(x)
+        z, mu, logvar = self.bottleneck(h)
+        return z, mu, logvar
 
-        return mu, logstd
-
-    def decode(self, x: torch.Tensor):
-        x = x.to(self.device)
-        x = f.relu(self.de_dense1(x))
-        x = x.view(-1, 256, 7, 7)
-        x = f.relu(self.de_deconv1(x))
-        x = f.relu(self.de_deconv2(x))
-        x = torch.sigmoid(self.de_deconv3(x))
-        return x
+    def decode(self, z):
+        z = self.fc3(z)
+        z = self.decoder(z)
+        return z
 
     def reparameterize(self, mu: torch.Tensor, logstd: torch.Tensor):
         if self.training:
             std = (logstd * 0.5).exp_()
-            std_prob = torch.randn(*mu.size())
+            std_prob = torch.randn(*mu.size(), device=self.device)
             return mu + std_prob * std
         else:
             return mu   # inference time
 
     def forward(self, x: torch.Tensor):
-        x = x.to(self.device)
-        mu, logstd = self.encode(x)
-        z = self.reparameterize(mu, logstd)
-        z = self.decode(z)
-        return z, mu, logstd
+        h = self.encoder(x)
+        z, mu, logvar = self.bottleneck(h)
+        z = self.fc3(z)
+        return self.decoder(z), mu, logvar
 
     @staticmethod
     def calculate_loss(pred_x: torch.Tensor, true_x: torch.Tensor, mu: torch.Tensor, logstd: torch.Tensor):
-        bce = f.mse_loss(pred_x, true_x, size_average=False)
+        bce = F.mse_loss(pred_x, true_x, reduction='sum')
         kld = -0.5 * torch.sum(1 + logstd - mu.pow(2) - logstd.exp())
         return bce + kld
 
