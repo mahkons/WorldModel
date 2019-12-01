@@ -34,5 +34,5 @@ if __name__ == "__main__":
             if done:
                 break
 
-            i = ('000' + str(t))[-3:]
-            imageio.imwrite(f'./rollouts/SimplePolicy/car_{episode}_{i}.jpg', obs)
+            i = ('0000' + str(t))[-4:]
+            imageio.imwrite(f'rollouts/SimplePolicy/car_{episode}_{i}.jpg', obs)
