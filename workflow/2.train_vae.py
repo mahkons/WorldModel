@@ -54,7 +54,6 @@ if __name__ == "__main__":
     # TODO work not only with images 64 * 64
     dataset = datasets.ImageFolder(root='rollouts', transform=transforms.Compose([
         transforms.Resize(64),
-        transforms.RandomHorizontalFlip(),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(), 
     ]))

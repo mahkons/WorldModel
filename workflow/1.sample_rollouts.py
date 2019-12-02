@@ -14,8 +14,13 @@ def create_parser():
     return parser 
 
 
+# TODO decide how to choose action
 def get_action(env):
-    return env.action_space.sample()
+    action = env.action_space.sample()
+    action[0] /= 10
+    action[1] = 1
+    action[2] = 0 
+    return action
 
 
 if __name__ == "__main__":
