@@ -1,4 +1,5 @@
 # -*- coding: utf-8 -*-
+import os
 import gym
 import imageio
 import numpy as np
@@ -23,13 +24,16 @@ def get_action(env):
     return action
 
 
-if __name__ == "__main__":
-    env = gym.make("CarRacing-v0")
+if __name__ == '__main__':
+    env = gym.make('CarRacing-v0')
     args = create_parser().parse_args()
+
+    os.makedirs('rollouts/SimplePolicy') 
+    os.system('rm -rf rollouts/SimplePolicy/*')
 
     pbar = tqdm(range(args.epochs))
     for episode in pbar:
-        pbar.set_description("Episode [{}/{}]".format(episode + 1, args.epochs))
+        pbar.set_description('Episode [{}/{}]'.format(episode + 1, args.epochs))
 
         obs = env.reset()
         for t in range(args.steps):
