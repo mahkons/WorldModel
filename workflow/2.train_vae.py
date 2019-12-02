@@ -34,7 +34,7 @@ def train(epochs, restart, device, dataloader, learning_rate):
     for epoch in pbar:
         pbar.set_description("Epoch [{}/{}]".format(epoch + 1, epochs))
 
-        for idx, (images, _) in enumerate(dataloader):
+        for idx, (images, _) in tqdm(enumerate(dataloader)):
             images = images.to(device)
             recon_images, mu, logstd = model(images)
 
