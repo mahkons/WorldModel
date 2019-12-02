@@ -25,7 +25,7 @@ def create_parser():
 
 
 def train(epochs, restart, device, dataloader, learning_rate):
-    model = VAE(image_height=64, image_width=64, h_dim=1024, device=device)
+    model = VAE(image_height=64, image_width=64, device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     if not restart:
         model.load_state_dict(torch.load("generated/vae.torch", map_location='cpu'))

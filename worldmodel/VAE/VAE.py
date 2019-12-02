@@ -11,12 +11,22 @@ class Flatten(nn.Module):
 
 
 class UnFlatten(nn.Module):
-    def __init__(self, size):
+    def __init__(self, size, h, w):
         super().__init__()
         self.size = size
+        self.h = h
+        self.w = w
 
     def forward(self, input):
-        return input.view(-1, self.size, 1, 1)
+        return input.view(-1, self.size, self.h, self.w)
+
+
+def calc_sz(h, k_sz, stride): 
+    padding = []
+    for k, s in zip(k_sz, stride):
+        padding.append((h - k) % s)
+        h = (h - k) // s + 1
+    return h, padding
 
 
 class VAE(nn.Module):
@@ -30,7 +40,6 @@ class VAE(nn.Module):
             image_height: int = 64,
             image_width: int = 64,
             image_channels: int = 3,
-            h_dim: int = 1024,
             z_dim: int = 32,
             device: str = "cpu"
     ):
@@ -39,17 +48,24 @@ class VAE(nn.Module):
         self.h = image_height
         self.w = image_width
         self.c = image_channels
-        self.h_dim = h_dim
         self.z_dim = z_dim
 
+        k_sz = [4, 4, 4, 4]
+        stride = [2, 2, 2, 2]
+
+        hidden_h, padding_h = calc_sz(self.h, k_sz, stride)
+        hidden_w, padding_w = calc_sz(self.w, k_sz, stride)
+        h_dim = 256 * hidden_h * hidden_w
+        output_padding = list(zip(padding_h, padding_w))
+
         self.encoder = nn.Sequential(
-            nn.Conv2d(image_channels, 32, kernel_size=4, stride=2),
+            nn.Conv2d(image_channels, 32, kernel_size=k_sz[0], stride=stride[0]),
             nn.ReLU(),
-            nn.Conv2d(32, 64, kernel_size=4, stride=2),
+            nn.Conv2d(32, 64, kernel_size=k_sz[1], stride=stride[1]),
             nn.ReLU(),
-            nn.Conv2d(64, 128, kernel_size=4, stride=2),
+            nn.Conv2d(64, 128, kernel_size=k_sz[2], stride=stride[2]),
             nn.ReLU(),
-            nn.Conv2d(128, 256, kernel_size=4, stride=2),
+            nn.Conv2d(128, 256, kernel_size=k_sz[3], stride=stride[3]),
             nn.ReLU(),
             Flatten()
         )
@@ -59,14 +75,14 @@ class VAE(nn.Module):
         self.fc3 = nn.Linear(z_dim, h_dim)
         
         self.decoder = nn.Sequential(
-            UnFlatten(h_dim),
-            nn.ConvTranspose2d(h_dim, 128, kernel_size=5, stride=2),
+            UnFlatten(256, hidden_h, hidden_w),
+            nn.ConvTranspose2d(256, 128, kernel_size=k_sz[3], stride=stride[3], output_padding=output_padding[3]),
             nn.ReLU(),
-            nn.ConvTranspose2d(128, 64, kernel_size=5, stride=2),
+            nn.ConvTranspose2d(128, 64, kernel_size=k_sz[2], stride=stride[2], output_padding=output_padding[2]),
             nn.ReLU(),
-            nn.ConvTranspose2d(64, 32, kernel_size=6, stride=2),
+            nn.ConvTranspose2d(64, 32, kernel_size=k_sz[1], stride=stride[1], output_padding=output_padding[1]),
             nn.ReLU(),
-            nn.ConvTranspose2d(32, image_channels, kernel_size=6, stride=2),
+            nn.ConvTranspose2d(32, image_channels, kernel_size=k_sz[0], stride=stride[0], output_padding=output_padding[0]),
             nn.Sigmoid(),
         )
 

@@ -32,7 +32,7 @@ def train(epochs, show, restart, action_sz, state_sz, device):
 
     controller = ControllerAC(state_sz, action_sz, device=device)
     if not restart:
-        controller.load_model("generated/actor_critic.torch")
+        controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, device=device)
     agent = Agent(env, vae, controller, device=device)
 
     plot_data = list()
