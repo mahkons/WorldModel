@@ -29,7 +29,6 @@ def train(epochs, restart, device, dataloader, learning_rate):
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     if not restart:
         model.load_state_dict(torch.load("generated/vae.torch", map_location='cpu'))
-    model.to(device)
 
     pbar = tqdm(range(epochs))
     for epoch in pbar:
@@ -53,9 +52,10 @@ def train(epochs, restart, device, dataloader, learning_rate):
 if __name__ == "__main__":
     #  dataset = datasets.ImageFolder(root='rollouts', transform=transforms.ToTensor())
     # TODO work not only with images 64 * 64
-    # TODO add horizontal/vertical flip
     dataset = datasets.ImageFolder(root='rollouts', transform=transforms.Compose([
         transforms.Resize(64),
+        transforms.RandomHorizontalFlip(),
+        transforms.RandomVerticalFlip(),
         transforms.ToTensor(), 
     ]))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
