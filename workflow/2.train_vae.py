@@ -10,7 +10,7 @@ import argparse
 import plotly.graph_objects as go
 import numpy as np
 
-from worldmodels.VAE.VAE import VAE
+from worldmodel.VAE.VAE import VAE
 
 BATCH_SIZE = 32
 plot_data = list()

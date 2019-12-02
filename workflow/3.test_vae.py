@@ -11,7 +11,7 @@ from torchvision import transforms
 from torchvision import datasets
 from torchvision.utils import make_grid
 
-from worldmodels.VAE.VAE import VAE
+from worldmodel.VAE.VAE import VAE
 
 def show(img):
     npimg = img.numpy()
