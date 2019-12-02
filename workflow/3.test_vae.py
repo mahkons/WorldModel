@@ -25,9 +25,6 @@ def compare(model, dataset):
         plt.show()
 
 if __name__ == "__main__":
-    dataset = datasets.ImageFolder(root='rollouts', transform=transforms.Compose([
-        transforms.Resize(64),
-        transforms.ToTensor(), 
-    ]))
-    vae = VAE.load_model("generated/vae.torch")
+    dataset = datasets.ImageFolder(root='rollouts', transform=transforms.ToTensor())
+    vae = VAE.load_model("generated/vae.torch", image_height=96, image_width=96)
     compare(vae, dataset)

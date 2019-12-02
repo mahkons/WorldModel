@@ -26,8 +26,7 @@ def create_parser():
 
 
 def train(epochs, show, restart, action_sz, state_sz, device):
-    vae = VAE(image_channels=3)
-    vae.load_state_dict(torch.load('generated/vae.torch', map_location='cpu'))
+    vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=96, image_width=96)
     vae.to(device)
 
     controller = ControllerAC(state_sz, action_sz, device=device)

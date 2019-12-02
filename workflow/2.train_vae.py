@@ -13,6 +13,8 @@ import numpy as np
 from worldmodel.VAE.VAE import VAE
 
 BATCH_SIZE = 32
+HEIGHT = 96
+WIDTH = 96
 plot_data = list()
 
 def create_parser():
@@ -25,7 +27,7 @@ def create_parser():
 
 
 def train(epochs, restart, device, dataloader, learning_rate):
-    model = VAE(image_height=64, image_width=64, device=device)
+    model = VAE(image_height=HEIGHT, image_width=WIDTH, device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     if not restart:
         model.load_state_dict(torch.load("generated/vae.torch", map_location='cpu'))
@@ -50,10 +52,7 @@ def train(epochs, restart, device, dataloader, learning_rate):
 
 
 if __name__ == "__main__":
-    #  dataset = datasets.ImageFolder(root='rollouts', transform=transforms.ToTensor())
-    # TODO work not only with images 64 * 64
     dataset = datasets.ImageFolder(root='rollouts', transform=transforms.Compose([
-        transforms.Resize(64),
         transforms.RandomVerticalFlip(),
         transforms.ToTensor(), 
     ]))

@@ -26,7 +26,6 @@ class Agent:
     def resize_obs(self, obs):
         transform = T.Compose([
             T.ToPILImage(),
-            T.Resize(64),
             T.ToTensor(),
         ])
         return transform(obs).to(self.device).unsqueeze(0)
