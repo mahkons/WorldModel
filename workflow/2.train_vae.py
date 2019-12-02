@@ -58,7 +58,7 @@ if __name__ == "__main__":
         transforms.ToTensor(), 
     ]))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
-    os.makedirs("generated")
+    os.makedirs("generated", exist_ok=True)
 
     args = create_parser().parse_args()
     train(args.epochs, args.restart, torch.device(args.device), dataloader, args.learning_rate)

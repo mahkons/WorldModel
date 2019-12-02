@@ -28,7 +28,7 @@ if __name__ == '__main__':
     env = gym.make('CarRacing-v0')
     args = create_parser().parse_args()
 
-    os.makedirs('rollouts/SimplePolicy') 
+    os.makedirs('rollouts/SimplePolicy', exist_ok=True) 
     os.system('rm -rf rollouts/SimplePolicy/*')
 
     pbar = tqdm(range(args.epochs))
