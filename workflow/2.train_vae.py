@@ -53,6 +53,7 @@ def train(epochs, restart, device, dataloader, learning_rate):
 if __name__ == "__main__":
     #  dataset = datasets.ImageFolder(root='rollouts', transform=transforms.ToTensor())
     # TODO work not only with images 64 * 64
+    # TODO add horizontal/vertical flip
     dataset = datasets.ImageFolder(root='rollouts', transform=transforms.Compose([
         transforms.Resize(64),
         transforms.ToTensor(), 
