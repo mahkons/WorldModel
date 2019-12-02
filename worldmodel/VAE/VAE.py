@@ -109,8 +109,7 @@ class VAE(nn.Module):
 
     def play_encode(self, obs: torch.Tensor) -> torch.Tensor:
         with torch.no_grad():
-            obs = to_tensor(obs).unsqueeze(0).float()
-            return self.reparameterize(*self.encode(obs)).squeeze()
+            return self.encode(obs)[0]
 
     def save_model(self, path):
         torch.save(self.state_dict(), path)

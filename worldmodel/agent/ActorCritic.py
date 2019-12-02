@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.transforms as T
 import torch.nn.functional as F
 
-from agent.ReplayMemory import ReplayMemory, Transition
+from worldmodel.agent.ReplayMemory import ReplayMemory, Transition
 
 HIDDEN_ACTOR_SIZE = 256
 HIDDEN_CRITIC_SIZE = 256
@@ -13,9 +13,9 @@ BATCH_SIZE = 64
 TAU = 0.001
 
 class Actor(nn.Module):
-    def __init__(self, state_sz, action_sz, hidden_sz):
+    def __init__(self, state_sz, action_sz):
         super(Actor, self).__init__()              
-        self.fc1 = nn.Linear(state_sz + hidden_sz, HIDDEN_ACTOR_SIZE)
+        self.fc1 = nn.Linear(state_sz, HIDDEN_ACTOR_SIZE)
         self.fc2 = nn.Linear(HIDDEN_ACTOR_SIZE, action_sz)
 
         nn.init.xavier_uniform_(self.fc1.weight)
@@ -28,9 +28,9 @@ class Actor(nn.Module):
 
 
 class Critic(nn.Module):
-    def __init__(self, state_sz, action_sz, hidden_sz):
+    def __init__(self, state_sz, action_sz):
         super(Critic, self).__init__()              
-        self.fc1 = nn.Linear(state_sz + action_sz + hidden_sz, HIDDEN_CRITIC_SIZE)
+        self.fc1 = nn.Linear(state_sz + action_sz, HIDDEN_CRITIC_SIZE)
         self.fc2 = nn.Linear(HIDDEN_CRITIC_SIZE, 1)
 
         nn.init.xavier_uniform_(self.fc1.weight)
@@ -41,19 +41,20 @@ class Critic(nn.Module):
         x = self.fc2(x)
         return x
 
+
 class ControllerAC(nn.Module):
-    def __init__(self, state_sz, action_sz, hidden_sz, mem_size=1000000, actor_lr=1e-3, critic_lr=1e-3, device='cpu'):
+    def __init__(self, state_sz, action_sz, mem_size=1000000, actor_lr=1e-3, critic_lr=1e-3, device='cpu'):
+        super(ControllerAC, self).__init__()
         self.state_sz = state_sz
         self.action_sz = action_sz
-        self.hidden_sz = hidden_sz
-        sefl.memory = ReplayMemory(mem_size)
+        self.memory = ReplayMemory(mem_size)
         self.device = device
 
-        self.actor = Actor(state_sz, action_sz, hidden_sz, device).to(device)
-        self.target_actor = Actor(state_sz, action_sz, hidden_sz, device).to(device)
+        self.actor = Actor(state_sz, action_sz).to(device)
+        self.target_actor = Actor(state_sz, action_sz).to(device)
 
-        self.critic = Critic(state_sz, action_sz, hidden_sz).to(device)
-        self.target_critic = Critic(state_sz, action_sz, hidden_sz).to(device)
+        self.critic = Critic(state_sz, action_sz).to(device)
+        self.target_critic = Critic(state_sz, action_sz).to(device)
 
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)

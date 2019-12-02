@@ -1,3 +1,4 @@
+import torch
 import random
 from collections import namedtuple
 
