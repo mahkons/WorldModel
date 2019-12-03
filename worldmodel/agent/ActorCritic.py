@@ -116,11 +116,9 @@ class ControllerAC(nn.Module):
         self.soft_update()
 
     def save_model(self, path):
-        torch.save(self.state_dict(), path)
+        torch.save(self, path)
 
     @staticmethod
     def load_model(path, *args, **kwargs):
-        state_dict = torch.load(path, map_location='cpu')
-        cnt = ControllerAC(*args, **kwargs)
-        cnt.load_state_dict(state_dict=state_dict)
+        cnt = torch.load(path, map_location='cou')
         return cnt
