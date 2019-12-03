@@ -43,7 +43,7 @@ class Critic(nn.Module):
 
 
 class ControllerAC(nn.Module):
-    def __init__(self, state_sz, action_sz, mem_size=1000000, actor_lr=1e-3, critic_lr=1e-3, device='cpu'):
+    def __init__(self, state_sz, action_sz, mem_size=1000000, actor_lr=1e-4, critic_lr=1e-4, device='cpu'):
         super(ControllerAC, self).__init__()
         self.state_sz = state_sz
         self.action_sz = action_sz
