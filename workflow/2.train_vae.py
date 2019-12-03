@@ -53,7 +53,7 @@ def train(epochs, restart, device, dataloader, learning_rate):
 
 if __name__ == "__main__":
     dataset = datasets.ImageFolder(root='rollouts', transform=transforms.Compose([
-        transforms.RandomVerticalFlip(),
+        transforms.RandomHorizontalFlip(),
         transforms.ToTensor(), 
     ]))
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=True)
