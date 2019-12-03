@@ -10,10 +10,16 @@ class ReplayMemory:
         self.memory = list()
         self.position = 0
     
-    def push(self, *args):
+    def push(self, state, action, next_state, reward):
         if len(self.memory) < self.capacity:
             self.memory.append(None)
-        self.memory[self.position] = Transition(*args)
+
+        self.memory[self.position] = Transition(
+            state.clone().detach(),
+            action.clone().detach(),
+            next_state.clone().detach(),
+            reward.clone().detach()
+        )
         
         self.position += 1
         if self.position == self.capacity:
