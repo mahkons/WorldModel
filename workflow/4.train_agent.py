@@ -38,7 +38,8 @@ def train(epochs, show, restart, action_sz, state_sz, device):
     pbar = tqdm(range(epochs))
     for epoch in pbar:
         reward = agent.rollout(show=show)
-        pbar.set_description("Epoch [{}/{}]. Reward: {}".format(epoch + 1, epochs, reward))
+        pbar.set_description("Epoch [{}/{}]".format(epoch + 1, epochs))
+        pbar.write("Reward: {:.3f}".format(reward))
         plot_data.append(reward)
 
     controller.save_model("generated/actor_critic.torch")

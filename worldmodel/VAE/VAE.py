@@ -132,7 +132,7 @@ class VAE(nn.Module):
 
     @classmethod
     def load_model(cls, path, *args, **kwargs):
-        state_dict = torch.load(path)
+        state_dict = torch.load(path, map_location='cpu')
         vae = cls(*args, **kwargs)
         vae.load_state_dict(state_dict=state_dict)
         return vae

@@ -120,7 +120,7 @@ class ControllerAC(nn.Module):
 
     @staticmethod
     def load_model(path, *args, **kwargs):
-        state_dict = torch.load(path)
+        state_dict = torch.load(path, map_location='cpu')
         cnt = ControllerAC(*args, **kwargs)
         cnt.load_state_dict(state_dict=state_dict)
         return cnt
