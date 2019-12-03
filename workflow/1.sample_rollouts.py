@@ -16,9 +16,10 @@ def create_parser():
 
 
 # TODO decide how to choose action
-def get_action(env):
+def get_action(env, steps):
     action = env.action_space.sample()
-    action[0] /= 10
+    if steps < 70:
+        action[0] = 0
     action[1] = 1
     action[2] = 0 
     return action
@@ -37,7 +38,7 @@ if __name__ == '__main__':
 
         obs = env.reset()
         for t in range(args.steps):
-            action = get_action(env)
+            action = get_action(env, t)
             obs, reward, done, _ = env.step(action)
             if args.show:
                 env.render()
