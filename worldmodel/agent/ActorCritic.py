@@ -120,5 +120,5 @@ class ControllerAC(nn.Module):
 
     @staticmethod
     def load_model(path, *args, **kwargs):
-        cnt = torch.load(path, map_location='cou')
+        cnt = torch.load(path, map_location='cpu')
         return cnt
