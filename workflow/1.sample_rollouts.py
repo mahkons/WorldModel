@@ -9,9 +9,9 @@ import argparse
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', type=int, default=1, required=False)
+    parser.add_argument('--epochs', type=int, default=30, required=False)
     parser.add_argument('--show', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
-    parser.add_argument('--steps', type=int, default=10**10, required=False)
+    parser.add_argument('--steps', type=int, default=100, required=False)
     return parser 
 
 

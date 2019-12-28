@@ -19,7 +19,7 @@ plot_data = list()
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', type=int, default=1, required=False)
+    parser.add_argument('--epochs', type=int, default=3, required=False)
     parser.add_argument('--restart', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     parser.add_argument('--device', type=str, default='cpu', required=False)
     parser.add_argument('--learning-rate', type=float, default=1e-3, required=False)

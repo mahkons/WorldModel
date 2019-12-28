@@ -6,55 +6,60 @@ import torch.nn.functional as F
 
 from worldmodel.agent.ReplayMemory import ReplayMemory, Transition
 
-HIDDEN_ACTOR_SIZE = 256
-HIDDEN_CRITIC_SIZE = 256
 GAMMA = 0.999
 BATCH_SIZE = 64
 TAU = 0.001
 
 class Actor(nn.Module):
-    def __init__(self, state_sz, action_sz):
+    def __init__(self, state_sz, action_sz, hidden_sz):
         super(Actor, self).__init__()              
-        self.fc1 = nn.Linear(state_sz, HIDDEN_ACTOR_SIZE)
-        self.fc2 = nn.Linear(HIDDEN_ACTOR_SIZE, action_sz)
+        self.fc1 = nn.Linear(state_sz + hidden_sz, 128)
+        self.fc2 = nn.Linear(128, 256)
+        self.fc3 = nn.Linear(256, action_sz)
 
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
+        nn.init.xavier_uniform_(self.fc3.weight)
 
     def forward(self, x):
         x = F.relu(self.fc1(x))
-        x = self.fc2(x)
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return torch.tanh(x)
 
 
 class Critic(nn.Module):
-    def __init__(self, state_sz, action_sz):
+    def __init__(self, state_sz, action_sz, hidden_sz):
         super(Critic, self).__init__()              
-        self.fc1 = nn.Linear(state_sz + action_sz, HIDDEN_CRITIC_SIZE)
-        self.fc2 = nn.Linear(HIDDEN_CRITIC_SIZE, 1)
+        self.fc1 = nn.Linear(state_sz + hidden_sz + action_sz, 128)
+        self.fc2 = nn.Linear(128, 256)
+        self.fc3 = nn.Linear(256, 1)
 
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
+        nn.init.xavier_uniform_(self.fc3.weight)
 
     def forward(self, state, action):
         x = F.relu(self.fc1(torch.cat([state, action], dim=1)))
-        x = self.fc2(x)
+        x = F.relu(self.fc2(x))
+        x = self.fc3(x)
         return x
 
 
 class ControllerAC(nn.Module):
-    def __init__(self, state_sz, action_sz, mem_size=1000000, actor_lr=1e-4, critic_lr=1e-4, device='cpu'):
+    def __init__(self, state_sz, action_sz, hidden_sz, mem_size=10000, actor_lr=1e-4, critic_lr=1e-4, device='cpu'):
         super(ControllerAC, self).__init__()
         self.state_sz = state_sz
         self.action_sz = action_sz
+        self.hidden_sz = hidden_sz
         self.memory = ReplayMemory(mem_size)
         self.device = device
 
-        self.actor = Actor(state_sz, action_sz).to(device)
-        self.target_actor = Actor(state_sz, action_sz).to(device)
+        self.actor = Actor(state_sz, action_sz, hidden_sz).to(device)
+        self.target_actor = Actor(state_sz, action_sz, hidden_sz).to(device)
 
-        self.critic = Critic(state_sz, action_sz).to(device)
-        self.target_critic = Critic(state_sz, action_sz).to(device)
+        self.critic = Critic(state_sz, action_sz, hidden_sz).to(device)
+        self.target_critic = Critic(state_sz, action_sz, hidden_sz).to(device)
 
         self.actor_optimizer = torch.optim.Adam(self.actor.parameters(), lr=actor_lr)
         self.critic_optimizer = torch.optim.Adam(self.critic.parameters(), lr=critic_lr)

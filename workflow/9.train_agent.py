@@ -15,6 +15,12 @@ from tqdm import tqdm
 from worldmodel.agent.Agent import Agent
 from worldmodel.VAE.VAE import VAE
 from worldmodel.agent.ActorCritic import ControllerAC
+from worldmodel.model.MDNRNN import MDNRNN
+
+z_size = 32
+n_hidden = 256
+n_gaussians = 5
+
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -28,11 +34,12 @@ def create_parser():
 def train(epochs, show, restart, action_sz, state_sz, device):
     vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=96, image_width=96)
     vae.to(device)
+    rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
 
-    controller = ControllerAC(state_sz, action_sz, device=device)
+    controller = ControllerAC(state_sz, action_sz, n_hidden, device=device)
     if not restart:
         controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, device=device)
-    agent = Agent(env, vae, controller, device=device)
+    agent = Agent(env, vae, rnn, controller, device=device)
 
     plot_data = list()
     pbar = tqdm(range(epochs))
