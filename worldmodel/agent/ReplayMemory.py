@@ -43,4 +43,3 @@ class ReplayMemory:
 
     def __len__(self):
         return len(self.memory)
-

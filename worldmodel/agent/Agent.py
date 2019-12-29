@@ -45,7 +45,7 @@ class Agent:
         #  return self.vae.play_encode(obs)
 
     def transform_obs(self, obs):
-        return torch.tensor([obs])
+        return torch.tensor([obs], device=self.device)
 
     def add_hidden(self, state, hidden):
         return torch.cat([state, hidden[0].squeeze(1)], dim=1)

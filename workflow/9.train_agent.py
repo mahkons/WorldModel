@@ -16,7 +16,7 @@ from worldmodel.agent.Agent import Agent
 from worldmodel.VAE.VAE import VAE
 from worldmodel.agent.ActorCritic import ControllerAC
 from worldmodel.model.MDNRNN import MDNRNN
-from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr
+from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr, mem_size
 
 
 def create_parser():
@@ -33,10 +33,13 @@ def train(env, epochs, show, restart, action_sz, state_sz, device):
     vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
     vae.to(device)
     rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
+    rnn.to(device)
 
-    controller = ControllerAC(state_sz, action_sz, n_hidden, device=device)
+    controller = ControllerAC(state_sz, action_sz, n_hidden, mem_size=mem_size, device=device)
     if not restart:
         controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
+        controller.to(device)
+        #TODO reload on cuda fails
     agent = Agent(env, vae, rnn, controller, device=device)
 
     plot_data = list()
@@ -47,7 +50,7 @@ def train(env, epochs, show, restart, action_sz, state_sz, device):
         pbar.write("Reward: {:.3f}".format(reward))
         plot_data.append(reward)
 
-    controller.save_model("generated/actor_critic.torch")
+    controller.save_model("generated/actor_critic.torch", map_location='cpu')
     plot = go.Figure()
     plot.add_trace(go.Scatter(x=np.arange(epochs), y=np.array(plot_data)))
     plot.show()
