@@ -50,6 +50,9 @@ class Agent:
     def add_hidden(self, state, hidden):
         return torch.cat([state, hidden[0].squeeze(1)], dim=1)
 
+    def wrap(self, x):
+        return torch.tensor([x], dtype=torch.float, device=self.device)
+
     def rollout(self, show=False):
         state = self.transform_obs(self.env.reset())
         hidden = self.rnn.init_hidden(1, self.device)
@@ -66,14 +69,14 @@ class Agent:
             action = self.controller.select_action(state)
             obs, reward, done, _ = self.env.step(action)
             total_reward += reward
-            reward = torch.tensor([reward], dtype=torch.float, device=self.device)
-            action = torch.tensor([action], dtype=torch.float, device=self.device)
+            reward = self.wrap(reward)
+            action = self.wrap(action)
 
             next_state = self.transform_obs(obs)
             _, next_hidden = self.rnn.play_encode(next_state.unsqueeze(0), hidden)
             next_state = self.add_hidden(next_state, next_hidden)
 
-            self.controller.memory.push(state, action, next_state, reward)
+            self.controller.memory.push(state, action, next_state, reward, self.wrap(done))
             state, hidden = next_state, next_hidden
             self.controller.optimize()
 

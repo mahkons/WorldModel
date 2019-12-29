@@ -83,7 +83,7 @@ class ControllerAC(nn.Module):
     def optimize_critic(self):
         if len(self.memory) < BATCH_SIZE:
             return
-        state, action, reward, next_state = self.memory.sample(BATCH_SIZE)
+        state, action, reward, next_state, done = self.memory.sample(BATCH_SIZE)
 
         state_action_values = self.critic(state, action)
         with torch.no_grad():
@@ -93,7 +93,7 @@ class ControllerAC(nn.Module):
             next_action = (self.target_actor(next_state) + noise).clamp(-1., 1.)
             next_values = self.target_critic(next_state, next_action).squeeze(1)
         
-        expected_state_action_values = (next_values * GAMMA) + reward
+        expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
 
         loss = F.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
 
@@ -104,7 +104,7 @@ class ControllerAC(nn.Module):
     def optimize_actor(self):
         if len(self.memory) < BATCH_SIZE:
             return
-        state, action, reward, next_state = self.memory.sample(BATCH_SIZE)
+        state, action, reward, next_state, done = self.memory.sample(BATCH_SIZE)
         predicted_action = self.actor(state)
         
         loss = -torch.sum(self.critic(state, predicted_action), dim=1).mean()

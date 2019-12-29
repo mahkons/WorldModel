@@ -16,5 +16,5 @@ critic_lr = 1e-3
 
 GAMMA = 0.99
 BATCH_SIZE = 64
-TAU = 0.005
+TAU = 0.002
 
