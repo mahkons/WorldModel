@@ -107,7 +107,8 @@ class ControllerAC(nn.Module):
         state, action, reward, next_state, done = self.memory.sample(BATCH_SIZE)
         predicted_action = self.actor(state)
         
-        loss = -torch.sum(self.critic(state, predicted_action), dim=1).mean()
+        not_done = done < 0.5
+        loss = -torch.sum(self.critic(state[not_done], predicted_action[not_done]), dim=1).mean()
         
         self.actor_optimizer.zero_grad()
         loss.backward()
