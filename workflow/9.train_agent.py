@@ -16,11 +16,12 @@ from worldmodel.agent.Agent import Agent
 from worldmodel.VAE.VAE import VAE
 from worldmodel.agent.ActorCritic import ControllerAC
 from worldmodel.model.MDNRNN import MDNRNN
-from params import z_size, n_hidden, n_gaussians, image_height, image_width
+from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr
 
 
 def create_parser():
     parser = argparse.ArgumentParser()
+    parser.add_argument('--env', type=str, default='LunarLanderContinuous-v2')
     parser.add_argument('--epochs', type=int, default=1, required=False)
     parser.add_argument('--device', type=str, default='cpu', required=False)
     parser.add_argument('--show', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
@@ -28,14 +29,14 @@ def create_parser():
     return parser
 
 
-def train(epochs, show, restart, action_sz, state_sz, device):
+def train(env, epochs, show, restart, action_sz, state_sz, device):
     vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
     vae.to(device)
     rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
 
     controller = ControllerAC(state_sz, action_sz, n_hidden, device=device)
     if not restart:
-        controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, device=device)
+        controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
     agent = Agent(env, vae, rnn, controller, device=device)
 
     plot_data = list()
@@ -53,10 +54,10 @@ def train(epochs, show, restart, action_sz, state_sz, device):
 
 
 if __name__ == "__main__":
-    env = gym.make('CarRacing-v0')
+    args = create_parser().parse_args()
+    env = gym.make(args.env) # CarRacing-v0 or LunarLanderContinuous-v2
     #TODO find better aproach
     action_sz = env.action_space.shape[0]
-    state_sz = 32
-    args = create_parser().parse_args()
+    state_sz = env.observation_space.shape[0]
 
-    train(args.epochs, args.show, args.restart, action_sz, state_sz, torch.device(args.device))
+    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, torch.device(args.device))

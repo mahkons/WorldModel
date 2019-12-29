@@ -34,14 +34,25 @@ class Agent:
         ])
         return transform(obs).to(self.device).unsqueeze(0)
 
+    #TODO
+    # code for carRacing. think of better way
+    #  def transform_obs(self, obs):
+        #  transform = T.Compose([
+            #  T.ToPILImage(),
+            #  T.ToTensor(),
+        #  ])
+        #  obs = transform(obs).to(self.device).unsqueeze(0)
+        #  return self.vae.play_encode(obs)
+
+    def transform_obs(self, obs):
+        return torch.tensor([obs])
+
     def add_hidden(self, state, hidden):
         return torch.cat([state, hidden[0].squeeze(1)], dim=1)
 
     def rollout(self, show=False):
-        obs = self.resize_obs(self.env.reset())
+        state = self.transform_obs(self.env.reset())
         hidden = self.rnn.init_hidden(1, self.device)
-
-        state = self.vae.play_encode(obs)
         state = self.add_hidden(state, hidden)
 
         done = False
@@ -58,8 +69,7 @@ class Agent:
             reward = torch.tensor([reward], dtype=torch.float, device=self.device)
             action = torch.tensor([action], dtype=torch.float, device=self.device)
 
-            obs = self.resize_obs(obs)
-            next_state = self.vae.play_encode(obs)
+            next_state = self.transform_obs(obs)
             _, next_hidden = self.rnn.play_encode(next_state.unsqueeze(0), hidden)
             next_state = self.add_hidden(next_state, next_hidden)
 

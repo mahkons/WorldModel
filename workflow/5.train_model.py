@@ -14,14 +14,14 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.nn.utils import clip_grad_norm_
 
-from worldmodel.model.MDNRNN import MDNRNN, mdn_loss_fn, detach
+from worldmodel.model.MDNRNN import MDNRNN, mdn_loss_fn, detach, mdn_loss_stable2
 from params import z_size, n_hidden, n_gaussians
 
 device = torch.device("cpu")
 
 epochs = 500
 seqlen = 16
-BATCH_SIZE = 20
+BATCH_SIZE = 38 #TODO add padding for any input
 
 plot_data = list()
 
@@ -38,7 +38,7 @@ def train(z, epochs, restart, device, learning_rate):
     model = MDNRNN(z_size, n_hidden, n_gaussians).to(device)
     if not restart:
         model.load_state_dict(torch.load("generated/mdnrnn.torch", map_location='cpu'))
-    criterion = mdn_loss_fn
+    criterion = mdn_loss_stable2
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     pbar = tqdm(range(epochs))

@@ -5,10 +5,8 @@ import torchvision.transforms as T
 import torch.nn.functional as F
 
 from worldmodel.agent.ReplayMemory import ReplayMemory, Transition
+from workflow.params import GAMMA, TAU, BATCH_SIZE
 
-GAMMA = 0.999
-BATCH_SIZE = 64
-TAU = 0.001
 
 class Actor(nn.Module):
     def __init__(self, state_sz, action_sz, hidden_sz):

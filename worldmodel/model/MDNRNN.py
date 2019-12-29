@@ -56,5 +56,21 @@ def mdn_loss_fn(y, pi, mu, sigma):
     loss = -torch.log(loss)
     return loss.mean()
 
+
+# from SafeWorld
+def mdn_loss_stable2(target, pi, mu, sigma):
+    '''
+    MDN loss with Log-Sum-Exp trick and -inf checks
+    '''
+    distr = torch.distributions.Normal(loc=mu, scale=sigma)
+    log_probs = distr.log_prob(target)
+    terms = torch.cat([log_probs, torch.log(pi)], dim=-1).sum(dim=-1)
+    max_term, _ = torch.max(terms, dim=-1, keepdim=True)
+    logexp = torch.log(torch.exp(terms - max_term).sum(dim=-1))
+    result = max_term.squeeze(-1) + logexp
+    # float(inf) seems to be excess and it won't work
+    #  result = torch.where((max_term == float('inf')) | (max_term == float('-inf')), max_term.squeeze(-1), result)
+    return -torch.mean(result)
+
 def detach(xs):
     return [x.detach() for x in xs]
