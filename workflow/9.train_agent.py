@@ -50,7 +50,7 @@ def train(env, epochs, show, restart, action_sz, state_sz, device):
         pbar.write("Reward: {:.3f}".format(reward))
         plot_data.append(reward)
 
-    controller.save_model("generated/actor_critic.torch", map_location='cpu')
+    controller.save_model("generated/actor_critic.torch")
     plot = go.Figure()
     plot.add_trace(go.Scatter(x=np.arange(epochs), y=np.array(plot_data)))
     plot.show()
