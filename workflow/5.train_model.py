@@ -15,6 +15,7 @@ import torch.optim as optim
 from torch.nn.utils import clip_grad_norm_
 
 from worldmodel.model.MDNRNN import MDNRNN, mdn_loss_fn, detach
+from params import z_size, n_hidden, n_gaussians
 
 device = torch.device("cpu")
 
@@ -22,9 +23,6 @@ epochs = 500
 seqlen = 16
 BATCH_SIZE = 20
 
-z_size = 32
-n_hidden = 256
-n_gaussians = 5
 plot_data = list()
 
 def create_parser():
@@ -36,7 +34,7 @@ def create_parser():
     return parser 
 
 
-def train(epochs, restart, device, learning_rate):
+def train(z, epochs, restart, device, learning_rate):
     model = MDNRNN(z_size, n_hidden, n_gaussians).to(device)
     if not restart:
         model.load_state_dict(torch.load("generated/mdnrnn.torch", map_location='cpu'))
@@ -44,6 +42,7 @@ def train(epochs, restart, device, learning_rate):
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
 
     pbar = tqdm(range(epochs))
+    loss = torch.tensor([0])
     for epoch in pbar:
         pbar.set_description("Epoch [{}/{}]".format(epoch + 1, epochs))
 
@@ -73,11 +72,9 @@ if __name__ == "__main__":
     device = torch.device(args.device)
 
     z = torch.load("generated/z.torch")
-    mu = torch.load("generated/mu.torch")
-    logvar = torch.load("generated/logvar.torch")
 
     z = z.view(BATCH_SIZE, -1, z.size(2)).to(device)
-    train(args.epochs, args.restart, args.device, args.learning_rate)
+    train(z, args.epochs, args.restart, args.device, args.learning_rate)
 
     plot = go.Figure()
     plot.add_trace(go.Scatter(x=np.arange(len(plot_data)), y=np.array(plot_data)))

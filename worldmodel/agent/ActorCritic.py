@@ -13,9 +13,9 @@ TAU = 0.001
 class Actor(nn.Module):
     def __init__(self, state_sz, action_sz, hidden_sz):
         super(Actor, self).__init__()              
-        self.fc1 = nn.Linear(state_sz + hidden_sz, 128)
-        self.fc2 = nn.Linear(128, 256)
-        self.fc3 = nn.Linear(256, action_sz)
+        self.fc1 = nn.Linear(state_sz + hidden_sz, 256)
+        self.fc2 = nn.Linear(256, 128)
+        self.fc3 = nn.Linear(128, action_sz)
 
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)
@@ -31,9 +31,9 @@ class Actor(nn.Module):
 class Critic(nn.Module):
     def __init__(self, state_sz, action_sz, hidden_sz):
         super(Critic, self).__init__()              
-        self.fc1 = nn.Linear(state_sz + hidden_sz + action_sz, 128)
-        self.fc2 = nn.Linear(128, 256)
-        self.fc3 = nn.Linear(256, 1)
+        self.fc1 = nn.Linear(state_sz + hidden_sz + action_sz, 256)
+        self.fc2 = nn.Linear(256, 128)
+        self.fc3 = nn.Linear(128, 1)
 
         nn.init.xavier_uniform_(self.fc1.weight)
         nn.init.xavier_uniform_(self.fc2.weight)

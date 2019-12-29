@@ -16,14 +16,13 @@ from torchvision import datasets
 from torchvision.utils import make_grid
 
 from worldmodel.VAE.VAE import VAE
+from params import image_height, image_width
 
 def show(img):
     npimg = img.numpy()
     plt.imshow(np.transpose(npimg, (1,2,0)), interpolation='nearest')
 
 BATCH_SIZE = 1
-HEIGHT = 96
-WIDTH = 96
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -32,20 +31,13 @@ def create_parser():
 
 
 def encode():
-    z_l, mu_l, logvar_l = [], [], []
+    z_l = list()
     for (images, _) in tqdm(dataloader):
-        z, mu, logvar = vae.encode(images)
+        z, _, _ = vae.encode(images)
         z_l.append(z)
-        mu_l.append(mu)
-        logvar_l.append(logvar)
 
     z_l = torch.stack(z_l)
-    mu_l = torch.stack(mu_l)
-    logvar_l = torch.stack(logvar_l)
-
     torch.save(z_l, "generated/z.torch")
-    torch.save(mu_l, "generated/mu.torch")
-    torch.save(logvar_l, "generated/logvar.torch")
 
     with torch.no_grad():
         x = np.random.randint(z.size(0))
@@ -60,7 +52,7 @@ if __name__ == "__main__":
     dataloader = torch.utils.data.DataLoader(dataset, batch_size=BATCH_SIZE, shuffle=False)
     len(dataset.imgs), len(dataloader)
 
-    vae = VAE(image_height=HEIGHT, image_width=WIDTH, device=torch.device(args.device))
+    vae = VAE(image_height=image_height, image_width=image_width, device=torch.device(args.device))
     vae.load_state_dict(torch.load('generated/vae.torch', map_location='cpu'))
 
     encode()

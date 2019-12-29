@@ -12,6 +12,7 @@ from torchvision.utils import make_grid
 
 from worldmodel.model.MDNRNN import MDNRNN, mdn_loss_fn, detach
 from worldmodel.VAE.VAE import VAE
+from params import z_size, n_hidden, n_gaussians, image_height, image_width
 
 def show(img):
     npimg = img.numpy()
@@ -22,22 +23,15 @@ def compare(x):
         show(make_grid(x))
         plt.show()
 
-z_size = 32
-n_hidden = 256
-n_gaussians = 5
 BATCH_SIZE = 20
-HEIGHT = 96
-WIDTH = 96
 
 if __name__ == "__main__":
     device = torch.device("cpu")
 
     z = torch.load("generated/z.torch")
-    mu = torch.load("generated/mu.torch")
-    logvar = torch.load("generated/logvar.torch")
     z = z.view(BATCH_SIZE, -1, z.size(2)).to(device)
 
-    vae_model = VAE(image_width=WIDTH, image_height=HEIGHT, image_channels=3).to(device)
+    vae_model = VAE(image_width=image_width, image_height=image_height, image_channels=3).to(device)
     vae_model.load_state_dict(torch.load('generated/vae.torch', map_location='cpu'))
 
     model = MDNRNN(z_size, n_hidden, n_gaussians)

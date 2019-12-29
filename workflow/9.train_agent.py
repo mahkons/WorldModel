@@ -16,10 +16,7 @@ from worldmodel.agent.Agent import Agent
 from worldmodel.VAE.VAE import VAE
 from worldmodel.agent.ActorCritic import ControllerAC
 from worldmodel.model.MDNRNN import MDNRNN
-
-z_size = 32
-n_hidden = 256
-n_gaussians = 5
+from params import z_size, n_hidden, n_gaussians, image_height, image_width
 
 
 def create_parser():
@@ -32,7 +29,7 @@ def create_parser():
 
 
 def train(epochs, show, restart, action_sz, state_sz, device):
-    vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=96, image_width=96)
+    vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
     vae.to(device)
     rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
 
