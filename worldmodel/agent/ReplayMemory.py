@@ -26,11 +26,11 @@ class ReplayMemory:
         if self.position == self.capacity:
             self.position = 0
             
-    def sample_transitions(self, batch_size):
-        return random.sample(self.memory, batch_size)
-
     def sample(self, batch_size):
-        transitions = self.sample_transitions(batch_size)
+        return self.get_transitions(self.sample_positions(batch_size))
+
+    def get_transitions(self, positions):
+        transitions = [self.memory[pos] for pos in positions]
 
         batch = Transition(*zip(*transitions))
         state = torch.cat(batch.state)
@@ -40,6 +40,12 @@ class ReplayMemory:
         done = torch.cat(batch.done)
 
         return state, action, reward, next_state, done
+
+    def sample_positions(self, batch_size):
+        return random.sample(range(len(self.memory)), batch_size), None
+
+    def update(*args, **kwargs):
+        pass
 
     def __len__(self):
         return len(self.memory)

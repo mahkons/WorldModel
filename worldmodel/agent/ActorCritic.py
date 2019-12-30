@@ -4,7 +4,7 @@ import torch.nn as nn
 import torchvision.transforms as T
 import torch.nn.functional as F
 
-from worldmodel.agent.ReplayMemory import ReplayMemory, Transition
+from worldmodel.agent.ReplayMemory import Transition
 from workflow.params import GAMMA, TAU, BATCH_SIZE
 
 
@@ -45,12 +45,12 @@ class Critic(nn.Module):
 
 
 class ControllerAC(nn.Module):
-    def __init__(self, state_sz, action_sz, hidden_sz, mem_size=10000, actor_lr=1e-4, critic_lr=1e-4, device='cpu'):
+    def __init__(self, state_sz, action_sz, hidden_sz, memory, actor_lr=1e-4, critic_lr=1e-4, device='cpu'):
         super(ControllerAC, self).__init__()
         self.state_sz = state_sz
         self.action_sz = action_sz
         self.hidden_sz = hidden_sz
-        self.memory = ReplayMemory(mem_size)
+        self.memory = memory
         self.device = device
 
         self.actor = Actor(state_sz, action_sz, hidden_sz).to(device)
@@ -83,7 +83,8 @@ class ControllerAC(nn.Module):
     def optimize_critic(self):
         if len(self.memory) < BATCH_SIZE:
             return
-        state, action, reward, next_state, done = self.memory.sample(BATCH_SIZE)
+        positions, weights = self.memory.sample_positions(BATCH_SIZE)
+        state, action, reward, next_state, done = self.memory.get_transitions(positions)
 
         state_action_values = self.critic(state, action)
         with torch.no_grad():
@@ -93,9 +94,11 @@ class ControllerAC(nn.Module):
             next_action = (self.target_actor(next_state) + noise).clamp(-1., 1.)
             next_values = self.target_critic(next_state, next_action).squeeze(1)
         
-        expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
+            expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
+            td_error = expected_state_action_values.unsqueeze(1) - state_action_values
+            self.memory.update(positions, torch.abs(td_error))
 
-        loss = F.smooth_l1_loss(state_action_values, expected_state_action_values.unsqueeze(1))
+        loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)
 
         self.critic_optimizer.zero_grad()
         loss.backward()
@@ -104,11 +107,14 @@ class ControllerAC(nn.Module):
     def optimize_actor(self):
         if len(self.memory) < BATCH_SIZE:
             return
-        state, action, reward, next_state, done = self.memory.sample(BATCH_SIZE)
+        positions, weights = self.memory.sample_positions(BATCH_SIZE)
+        state, action, reward, next_state, done = self.memory.get_transitions(positions)
         predicted_action = self.actor(state)
-        
+
         not_done = done < 0.5
-        loss = -torch.sum(self.critic(state[not_done], predicted_action[not_done]), dim=1).mean()
+        value = self.critic(state[not_done], predicted_action[not_done])
+        
+        loss = -torch.sum(value, dim=1).mean()
         
         self.actor_optimizer.zero_grad()
         loss.backward()

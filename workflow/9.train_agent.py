@@ -15,8 +15,10 @@ from tqdm import tqdm
 from worldmodel.agent.Agent import Agent
 from worldmodel.VAE.VAE import VAE
 from worldmodel.agent.ActorCritic import ControllerAC
+from worldmodel.agent.ReplayMemory import ReplayMemory
+from worldmodel.agent.PrioritizedReplay import PrioritizedReplayMemory
 from worldmodel.model.MDNRNN import MDNRNN
-from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr, mem_size
+from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr, mem_size, memtype
 
 
 def create_parser():
@@ -29,15 +31,15 @@ def create_parser():
     return parser
 
 
-def train(env, epochs, show, restart, action_sz, state_sz, device):
+def train(env, epochs, show, restart, action_sz, state_sz, memory, device):
     vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
     vae.to(device)
     rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
     rnn.to(device)
 
-    controller = ControllerAC(state_sz, action_sz, n_hidden, mem_size=mem_size, device=device)
+    controller = ControllerAC(state_sz, action_sz, n_hidden, memory=memory, device=device)
     if not restart:
-        controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
+        controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, n_hidden, memory=memory, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
         controller.to(device)
         #TODO reload on cuda fails
     agent = Agent(env, vae, rnn, controller, device=device)
@@ -56,11 +58,19 @@ def train(env, epochs, show, restart, action_sz, state_sz, device):
     plot.show()
 
 
+def get_memory():
+    if memtype == "Classic":
+        return ReplayMemory(mem_size)
+    elif memtype == "Prioritized":
+        return PrioritizedReplayMemory(mem_size)
+    else:
+        raise ValueError("unknown memtype")
+
+
 if __name__ == "__main__":
     args = create_parser().parse_args()
     env = gym.make(args.env) # CarRacing-v0 or LunarLanderContinuous-v2
-    #TODO find better aproach
     action_sz = env.action_space.shape[0]
     state_sz = env.observation_space.shape[0]
 
-    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, torch.device(args.device))
+    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, get_memory(), torch.device(args.device))
