@@ -1,9 +1,10 @@
 import torch
 import numpy as np
 import random
+import math
 from collections import namedtuple
 
-from workflow.params import PRIORITY_EPS, PRIORITY_ALPHA
+from workflow.params import PRIORITY_EPS, PRIORITY_ALPHA, BETA_START, BETA_END, BETA_DECAY
 
 Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'done'))
 
@@ -52,6 +53,7 @@ class PrioritizedReplayMemory:
         self.tree = RangeTree(capacity)
         self.priorities = np.empty((capacity, ))
         self.size = 0
+        self.steps_done = 0
     
     def push(self, state, action, next_state, reward, done):
         if len(self.memory) < self.capacity:
@@ -82,7 +84,10 @@ class PrioritizedReplayMemory:
             
     def sample_positions(self, batch_size):
         positions = [self.tree.get(np.random.uniform(k / batch_size, (k + 1) / batch_size)) for k in range(batch_size)]
-        beta = 0
+
+        beta = BETA_END - (BETA_END - BETA_START) * math.exp(-1. * self.steps_done / BETA_DECAY)
+        self.steps_done += 1
+
         weights = (torch.tensor(self.get_priorities(positions)) * batch_size) ** (-beta)
         weights /= torch.max(weights) 
         return positions, weights

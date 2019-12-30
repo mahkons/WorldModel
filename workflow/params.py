@@ -21,5 +21,10 @@ TAU = 0.002
 
 # memory
 memtype = "Prioritized"
+
 PRIORITY_EPS = 0.005
 PRIORITY_ALPHA = 0.5
+
+BETA_START = 0.4
+BETA_END = 1
+BETA_DECAY = 200
