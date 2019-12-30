@@ -107,13 +107,12 @@ class ControllerAC(nn.Module):
     def optimize_actor(self):
         if len(self.memory) < BATCH_SIZE:
             return
-        positions, weights = self.memory.sample_positions(BATCH_SIZE)
+
+        positions = self.memory.sample_positions_uniform(BATCH_SIZE)
         state, action, reward, next_state, done = self.memory.get_transitions(positions)
         predicted_action = self.actor(state)
 
-        not_done = done < 0.5
-        value = self.critic(state[not_done], predicted_action[not_done])
-        
+        value = self.critic(state, predicted_action) * (1 - done)
         loss = -torch.sum(value, dim=1).mean()
         
         self.actor_optimizer.zero_grad()

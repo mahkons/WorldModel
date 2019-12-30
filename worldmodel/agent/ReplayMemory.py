@@ -41,6 +41,9 @@ class ReplayMemory:
 
         return state, action, reward, next_state, done
 
+    def sample_positions_uniform(self, batch_size):
+        return random.sample(range(len(self.memory)), batch_size)
+
     def sample_positions(self, batch_size):
         return random.sample(range(len(self.memory)), batch_size), None
 

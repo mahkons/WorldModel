@@ -81,6 +81,9 @@ class PrioritizedReplayMemory:
         for (pos, error) in zip(positions, td_errors):
             self.priorities[pos] = (abs(error) + PRIORITY_EPS) ** PRIORITY_ALPHA
             self.tree.add(pos, self.priorities[pos])
+
+    def sample_positions_uniform(self, batch_size):
+        return random.sample(range(len(self.memory)), batch_size)
             
     def sample_positions(self, batch_size):
         positions = [self.tree.get(np.random.uniform(k / batch_size, (k + 1) / batch_size)) for k in range(batch_size)]
