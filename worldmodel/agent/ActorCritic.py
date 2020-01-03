@@ -96,6 +96,7 @@ class ControllerAC(nn.Module):
         
             expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
             td_error = expected_state_action_values.unsqueeze(1) - state_action_values
+            #  td_error = td_error.clamp(-1, 1)
             self.memory.update(positions, torch.abs(td_error))
 
         loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)
@@ -112,7 +113,7 @@ class ControllerAC(nn.Module):
         state, action, reward, next_state, done = self.memory.get_transitions(positions)
         predicted_action = self.actor(state)
 
-        value = self.critic(state, predicted_action) * (1 - done)
+        value = self.critic(state, predicted_action) * (1 - done) # TODO remove or not remove (1 - done)?
         loss = -torch.sum(value, dim=1).mean()
         
         self.actor_optimizer.zero_grad()

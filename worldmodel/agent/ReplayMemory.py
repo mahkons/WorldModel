@@ -15,11 +15,11 @@ class ReplayMemory:
             self.memory.append(None)
 
         self.memory[self.position] = Transition(
-            state.clone().detach(),
-            action.clone().detach(),
-            next_state.clone().detach(),
-            reward.clone().detach(),
-            done.clone().detach()
+            state.detach(),
+            action.detach(),
+            next_state.detach(),
+            reward.detach(),
+            done.detach()
         )
         
         self.position += 1
@@ -45,7 +45,7 @@ class ReplayMemory:
         return random.sample(range(len(self.memory)), batch_size)
 
     def sample_positions(self, batch_size):
-        return random.sample(range(len(self.memory)), batch_size), None
+        return random.sample(range(len(self.memory)), batch_size), torch.ones(batch_size)
 
     def update(*args, **kwargs):
         pass

@@ -60,11 +60,11 @@ class PrioritizedReplayMemory:
             self.memory.append(None)
             
         self.memory[self.position] = Transition(
-            state.clone().detach(),
-            action.clone().detach(),
-            next_state.clone().detach(),
-            reward.clone().detach(),
-            done.clone().detach()
+            state.detach(),
+            action.detach(),
+            next_state.detach(),
+            reward.detach(),
+            done.detach()
         )
         self.priorities[self.position] = max(self.tree.get_max(), PRIORITY_EPS)
         self.tree.add(self.position, self.priorities[self.position])

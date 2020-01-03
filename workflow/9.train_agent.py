@@ -18,7 +18,7 @@ from worldmodel.agent.ActorCritic import ControllerAC
 from worldmodel.agent.ReplayMemory import ReplayMemory
 from worldmodel.agent.PrioritizedReplay import PrioritizedReplayMemory
 from worldmodel.model.MDNRNN import MDNRNN
-from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr, mem_size, memtype
+from params import z_size, n_hidden, n_gaussians, image_height, image_width, actor_lr, critic_lr, mem_size
 
 
 def create_parser():
@@ -28,23 +28,29 @@ def create_parser():
     parser.add_argument('--device', type=str, default='cpu', required=False)
     parser.add_argument('--show', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     parser.add_argument('--restart', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
+
+    parser.add_argument('--memtype', type=str, default='Classic', required=False)
+    parser.add_argument('--plot-path', type=str, default='generated/train_plot.torch', required=False)
     return parser
 
 
-def train(env, epochs, show, restart, action_sz, state_sz, memory, device):
+def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_path):
     vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
     vae.to(device)
     rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
     rnn.to(device)
 
     controller = ControllerAC(state_sz, action_sz, n_hidden, memory=memory, device=device)
+    plot_data = list()
+
     if not restart:
+        #TODO reload on cuda fails
         controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, n_hidden, memory=memory, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
         controller.to(device)
-        #TODO reload on cuda fails
+
+        plot_data = torch.load(plot_path)
     agent = Agent(env, vae, rnn, controller, device=device)
 
-    plot_data = list()
     pbar = tqdm(range(epochs))
     for epoch in pbar:
         reward = agent.rollout(show=show)
@@ -53,12 +59,13 @@ def train(env, epochs, show, restart, action_sz, state_sz, memory, device):
         plot_data.append(reward)
 
     controller.save_model("generated/actor_critic.torch")
+    torch.save(plot_data, plot_path)
     plot = go.Figure()
-    plot.add_trace(go.Scatter(x=np.arange(epochs), y=np.array(plot_data)))
+    plot.add_trace(go.Scatter(x=np.arange(len(plot_data)), y=np.array(plot_data)))
     plot.show()
 
 
-def get_memory():
+def get_memory(memtype):
     if memtype == "Classic":
         return ReplayMemory(mem_size)
     elif memtype == "Prioritized":
@@ -73,4 +80,4 @@ if __name__ == "__main__":
     action_sz = env.action_space.shape[0]
     state_sz = env.observation_space.shape[0]
 
-    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, get_memory(), torch.device(args.device))
+    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, get_memory(args.memtype), torch.device(args.device), args.plot_path)
