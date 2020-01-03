@@ -2,7 +2,7 @@ import torch
 import random
 from collections import namedtuple
 
-Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'done'))
+Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'done', 'model_error'))
 
 class ReplayMemory:
     def __init__(self, capacity):
@@ -10,7 +10,7 @@ class ReplayMemory:
         self.memory = list()
         self.position = 0
     
-    def push(self, state, action, next_state, reward, done):
+    def push(self, state, action, next_state, reward, done, model_error):
         if len(self.memory) < self.capacity:
             self.memory.append(None)
 
@@ -19,7 +19,8 @@ class ReplayMemory:
             action.detach(),
             next_state.detach(),
             reward.detach(),
-            done.detach()
+            done.detach(),
+            model_error.detach()
         )
         
         self.position += 1
@@ -38,8 +39,9 @@ class ReplayMemory:
         reward = torch.cat(batch.reward)
         next_state = torch.cat(batch.next_state)
         done = torch.cat(batch.done)
+        model_error = torch.cat(batch.model_error)
 
-        return state, action, reward, next_state, done
+        return state, action, reward, next_state, done, model_error
 
     def sample_positions_uniform(self, batch_size):
         return random.sample(range(len(self.memory)), batch_size)

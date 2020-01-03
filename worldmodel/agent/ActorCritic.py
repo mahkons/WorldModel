@@ -84,21 +84,22 @@ class ControllerAC(nn.Module):
         if len(self.memory) < BATCH_SIZE:
             return
         positions, weights = self.memory.sample_positions(BATCH_SIZE)
-        state, action, reward, next_state, done = self.memory.get_transitions(positions)
+        state, action, reward, next_state, done, model_error = self.memory.get_transitions(positions)
 
         state_action_values = self.critic(state, action)
         with torch.no_grad():
-            noise = torch.empty(action.shape).data.normal_(0, 0.2).to(self.device)
+            noise = torch.empty(action.shape).data.normal_(0, 0.2).to(self.device) # from SafeWorld. #TODO for exploration?
             noise = noise.clamp(-0.5, 0.5)
 
             next_action = (self.target_actor(next_state) + noise).clamp(-1., 1.)
             next_values = self.target_critic(next_state, next_action).squeeze(1)
         
             expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
-            td_error = expected_state_action_values.unsqueeze(1) - state_action_values
-            #  td_error = td_error.clamp(-1, 1)
-            self.memory.update(positions, torch.abs(td_error))
+            td_error = (expected_state_action_values.unsqueeze(1) - state_action_values).squeeze(1)
+            #  td_error = td_error.clamp(-1, 1) # TODO remove or not clamp
+            self.memory.update(positions, torch.abs(td_error) + torch.abs(model_error))
 
+        weights = weights.to(self.device)
         loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)
 
         self.critic_optimizer.zero_grad()
@@ -110,7 +111,7 @@ class ControllerAC(nn.Module):
             return
 
         positions = self.memory.sample_positions_uniform(BATCH_SIZE)
-        state, action, reward, next_state, done = self.memory.get_transitions(positions)
+        state, action, reward, next_state, done, model_error = self.memory.get_transitions(positions)
         predicted_action = self.actor(state)
 
         value = self.critic(state, predicted_action) * (1 - done) # TODO remove or not remove (1 - done)?

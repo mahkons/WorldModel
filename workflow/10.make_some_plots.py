@@ -10,10 +10,12 @@ paths = [
         #  'plots/classic_1e-3.torch', 
         #  'plots/classic_1e-4.torch', 
         #  'plots/prioritized_1e-2.torch',
-        'plots/prioritized_1e-3.torch',
+        #  'plots/prioritized_1e-3.torch',
         #  'plots/prioritized_1e-4.torch',
-        'plots/prioritized_no_clamp_1e-3.torch',
+        #  'plots/prioritized_no_clamp_1e-3.torch',
+        #  'plots/classic_1e-3_long.torch', 
         'plots/prioritized_1e-3_long.torch',
+        'plots/prioritized_1e-3_long_v2.torch',
         'plots/prioritized_no_clamp_1e-3_long.torch',
         ]
 

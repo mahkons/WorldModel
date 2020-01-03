@@ -13,6 +13,8 @@ import torchvision.transforms as T
 from torch.distributions.normal import Normal
 from torch.nn.utils import clip_grad_norm_
 
+from worldmodel.model.MDNRNN import mdn_loss_stable2
+
 def detach(xs):
     return [x.detach() for x in xs]
 
@@ -47,6 +49,13 @@ class Agent:
     def transform_obs(self, obs):
         return torch.tensor([obs], device=self.device)
 
+    def calc_model_error(self, state, pi, mu, sigma):
+        m = torch.distributions.Normal(loc=mu, scale=sigma)
+        predicted_state = m.rsample().squeeze()
+
+        errors = ((predicted_state - state.squeeze()) ** 2)
+        return (errors * pi.squeeze()).sum()
+
     def add_hidden(self, state, hidden):
         return torch.cat([state, hidden[0].squeeze(1)], dim=1)
 
@@ -73,10 +82,11 @@ class Agent:
             action = self.wrap(action)
 
             next_state = self.transform_obs(obs)
-            _, next_hidden = self.rnn.play_encode(next_state.unsqueeze(0), hidden)
+            state_prediction, next_hidden = self.rnn.play_encode(next_state.unsqueeze(0), hidden)
+            model_error = self.calc_model_error(next_state, *state_prediction)
             next_state = self.add_hidden(next_state, next_hidden)
 
-            self.controller.memory.push(state, action, next_state, reward, self.wrap(done))
+            self.controller.memory.push(state, action, next_state, reward, self.wrap(done), self.wrap(model_error))
             state, hidden = next_state, next_hidden
             self.controller.optimize()
 

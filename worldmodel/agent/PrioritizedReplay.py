@@ -6,7 +6,7 @@ from collections import namedtuple
 
 from workflow.params import PRIORITY_EPS, PRIORITY_ALPHA, BETA_START, BETA_END, BETA_DECAY
 
-Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'done'))
+Transition = namedtuple('Transition', ('state', 'action', 'next_state', 'reward', 'done', 'model_error'))
 
 
 class RangeTree:
@@ -55,7 +55,7 @@ class PrioritizedReplayMemory:
         self.size = 0
         self.steps_done = 0
     
-    def push(self, state, action, next_state, reward, done):
+    def push(self, state, action, next_state, reward, done, model_error):
         if len(self.memory) < self.capacity:
             self.memory.append(None)
             
@@ -64,7 +64,8 @@ class PrioritizedReplayMemory:
             action.detach(),
             next_state.detach(),
             reward.detach(),
-            done.detach()
+            done.detach(),
+            model_error.detach()
         )
         self.priorities[self.position] = max(self.tree.get_max(), PRIORITY_EPS)
         self.tree.add(self.position, self.priorities[self.position])
@@ -104,8 +105,9 @@ class PrioritizedReplayMemory:
         reward = torch.cat(batch.reward)
         next_state = torch.cat(batch.next_state)
         done = torch.cat(batch.done)
+        model_error = torch.cat(batch.model_error)
 
-        return state, action, reward, next_state, done
+        return state, action, reward, next_state, done, model_error
 
     def __len__(self):
         return len(self.memory)
