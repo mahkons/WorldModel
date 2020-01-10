@@ -14,13 +14,14 @@ def create_parser():
     parser.add_argument('--epochs', type=int, default=30, required=False)
     parser.add_argument('--show', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     parser.add_argument('--steps', type=int, default=1000, required=False)
+    parser.add_argument('--with-agent', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     return parser 
 
 
 # TODO decide how to choose action
 def get_action(env, steps):
     action = env.action_space.sample()
-    return action
+    #  return action
 
     if steps < 70:
         action[0] = 0
@@ -55,8 +56,10 @@ def sample_rollouts(env, epochs, steps, images):
                 imageio.imwrite(f'rollouts/SimplePolicy/car_{episode}_{i}.jpg', obs)
             else:
                 z_l.append(torch.tensor([obs]))
-    z_l = torch.stack(z_l)
-    torch.save(z_l, "generated/z.torch")
+
+    if not images:
+        z_l = torch.stack(z_l)
+        torch.save(z_l, "generated/z.torch")
 
 
 

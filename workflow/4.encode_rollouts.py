@@ -33,7 +33,7 @@ def create_parser():
 def encode():
     z_l = list()
     for (images, _) in tqdm(dataloader):
-        z, _, _ = vae.encode(images)
+        z = vae.play_encode(images)
         z_l.append(z)
 
     z_l = torch.stack(z_l)

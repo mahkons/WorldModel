@@ -53,7 +53,7 @@ def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_
 
     pbar = tqdm(range(epochs))
     for epoch in pbar:
-        reward = agent.rollout(show=show)
+        reward, steps = agent.rollout(show=show)
         pbar.set_description("Epoch [{}/{}]".format(epoch + 1, epochs))
         pbar.write("Reward: {:.3f}".format(reward))
         plot_data.append(reward)
@@ -78,6 +78,6 @@ if __name__ == "__main__":
     args = create_parser().parse_args()
     env = gym.make(args.env) # CarRacing-v0 or LunarLanderContinuous-v2
     action_sz = env.action_space.shape[0]
-    state_sz = env.observation_space.shape[0]
+    state_sz = z_size
 
     train(env, args.epochs, args.show, args.restart, action_sz, state_sz, get_memory(args.memtype), torch.device(args.device), args.plot_path)

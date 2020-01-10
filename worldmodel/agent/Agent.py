@@ -36,18 +36,18 @@ class Agent:
         ])
         return transform(obs).to(self.device).unsqueeze(0)
 
-    #TODO
-    # code for carRacing. think of better way
-    #  def transform_obs(self, obs):
-        #  transform = T.Compose([
-            #  T.ToPILImage(),
-            #  T.ToTensor(),
-        #  ])
-        #  obs = transform(obs).to(self.device).unsqueeze(0)
-        #  return self.vae.play_encode(obs)
-
+    #  TODO
+    #  code for carRacing. find better way
     def transform_obs(self, obs):
-        return torch.tensor([obs], device=self.device)
+        transform = T.Compose([
+            T.ToPILImage(),
+            T.ToTensor(),
+        ])
+        obs = transform(obs).to(self.device).unsqueeze(0)
+        return self.vae.play_encode(obs)
+
+    #  def transform_obs(self, obs):
+        #  return torch.tensor([obs], device=self.device)
 
     def calc_model_error(self, state, pi, mu, sigma):
         m = torch.distributions.Normal(loc=mu, scale=sigma)
@@ -69,6 +69,7 @@ class Agent:
 
         done = False
         total_reward = 0
+        steps = 0
 
         for t in count():
             hidden = detach(hidden)
@@ -90,6 +91,7 @@ class Agent:
             state, hidden = next_state, next_hidden
             self.controller.optimize()
 
+            steps = t + 1
             if done:
                 break;
-        return total_reward
+        return total_reward, steps

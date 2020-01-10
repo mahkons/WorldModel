@@ -80,6 +80,14 @@ class ControllerAC(nn.Module):
         self.soft_update_net(self.actor, self.target_actor)
         self.soft_update_net(self.critic, self.target_critic)
 
+
+    def combine_errors(self, xs, ys):
+        p = 1
+        eps = 1e-9
+        wy = 0.5
+
+        return ((xs + eps) ** p + (ys * wy + eps) ** p) ** (1. / p)
+
     def optimize_critic(self):
         if len(self.memory) < BATCH_SIZE:
             return
@@ -97,7 +105,7 @@ class ControllerAC(nn.Module):
             expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
             td_error = (expected_state_action_values.unsqueeze(1) - state_action_values).squeeze(1)
             #  td_error = td_error.clamp(-1, 1) # TODO remove or not clamp
-            self.memory.update(positions, torch.abs(td_error) + torch.abs(model_error))
+            self.memory.update(positions, self.combine_errors(torch.abs(td_error), torch.abs(model_error)))
 
         weights = weights.to(self.device)
         loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)
