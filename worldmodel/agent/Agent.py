@@ -38,23 +38,25 @@ class Agent:
 
     #  TODO
     #  code for carRacing. find better way
-    def transform_obs(self, obs):
-        transform = T.Compose([
-            T.ToPILImage(),
-            T.ToTensor(),
-        ])
-        obs = transform(obs).to(self.device).unsqueeze(0)
-        return self.vae.play_encode(obs)
-
     #  def transform_obs(self, obs):
-        #  return torch.tensor([obs], device=self.device)
+        #  transform = T.Compose([
+            #  T.ToPILImage(),
+            #  T.ToTensor(),
+        #  ])
+        #  obs = transform(obs).to(self.device).unsqueeze(0)
+        #  return self.vae.play_encode(obs)
+
+    def transform_obs(self, obs):
+        return torch.tensor([obs], device=self.device)
 
     def calc_model_error(self, state, pi, mu, sigma):
-        m = torch.distributions.Normal(loc=mu, scale=sigma)
-        predicted_state = m.rsample().squeeze()
+        predicted_state = mu.squeeze()
 
         errors = ((predicted_state - state.squeeze()) ** 2)
-        return (errors * pi.squeeze()).sum()
+        model_error = (errors * pi.squeeze()).sum()
+        l_bound, r_bound = -1, 1
+        model_error = max(l_bound, min(r_bound, model_error))
+        return model_error
 
     def add_hidden(self, state, hidden):
         return torch.cat([state, hidden[0].squeeze(1)], dim=1)

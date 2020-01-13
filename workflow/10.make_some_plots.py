@@ -14,9 +14,9 @@ paths = [
         #  'plots/prioritized_1e-4.torch',
         #  'plots/prioritized_no_clamp_1e-3.torch',
         #  'plots/classic_1e-3_long.torch', 
-        'plots/prioritized_1e-3_long.torch',
+        #  'plots/prioritized_1e-3_long.torch',
         #  'plots/prioritized_1e-3_long_v2.torch',
-        'plots/prioritized_no_clamp_1e-3_long.torch',
+        #  'plots/prioritized_no_clamp_1e-3_long.torch',
         #  'plots/error_sum_1e-3_long.torch',
         #  'plots/error_prod_1e-3_long.torch',
         #  'plots/error_p-0.5_long.torch',
@@ -37,23 +37,37 @@ paths = [
         #  'plots/error_p1_wy0.5_long_v4.torch',
         #  'plots/error_p1_wy3_long.torch',
         #  'plots/car_classic_1e-3.torch',
-        ]
+    
+
+        'new_plots/classic_1e-3.torch',
+        'new_plots/classic_1e-3_v2.torch',
+        'new_plots/prioritized_1e-3.torch',
+        'new_plots/prioritized_1e-3_v2.torch',
+        'new_plots/error_1e-3.torch',
+        'new_plots/error_1e-3_v2.torch',
+    ]
 
 
-def add_trace(plot, plot_data, name):
-    plot.add_trace(go.Scatter(x=np.arange(len(plot_data)), y=np.array(plot_data), name=name))
+def add_trace(plot, x, y, name):
+    plot.add_trace(go.Scatter(x=x, y=y, name=name))
 
 
-def add_avg_trace(plot, plot_data, name, avg_epochs=50):
-    y = [mean(plot_data[max(0, i - avg_epochs):i]) for i in range(1, len(plot_data) + 1)]
-    add_trace(plot, y, name)
+def add_avg_trace(plot, x, y, name, avg_epochs=100):
+    y = [mean(y[max(0, i - avg_epochs):i]) for i in range(1, len(y) + 1)]
+    add_trace(plot, x, y, name)
 
 
 if __name__ == "__main__":
     data = [torch.load(path) for path in paths]
     plot = go.Figure()
 
+
     for (plot_data, path) in zip(data, paths):
-        add_avg_trace(plot, plot_data, path)
+        x, y = zip(*plot_data)
+        x, y = np.array(x), np.array(y)
+        for i in range(1, len(x)):
+            x[i] += x[i - 1]
+        #  x = np.arange(len(x))
+        add_avg_trace(plot, x, y, path)
 
     plot.show()

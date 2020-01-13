@@ -23,7 +23,7 @@ def create_parser():
 # TODO decide how to choose action
 def get_action_randomly(env, steps, obs):
     action = env.action_space.sample()
-    #  return action
+    return action
 
     if steps < 70:
         action[0] = 0

@@ -68,7 +68,7 @@ def mdn_loss_stable2(target, pi, mu, sigma):
     max_term, _ = torch.max(terms, dim=-1, keepdim=True)
     logexp = torch.log(torch.exp(terms - max_term).sum(dim=-1))
     result = max_term.squeeze(-1) + logexp
-    # float(inf) seems to be excess and it won't work
+    #  float(inf) seems to be excess and it won't work
     #  result = torch.where((max_term == float('inf')) | (max_term == float('-inf')), max_term.squeeze(-1), result)
     return -torch.mean(result)
 

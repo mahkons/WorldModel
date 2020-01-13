@@ -35,8 +35,9 @@ def create_parser():
 
 
 def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_path):
-    vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
-    vae.to(device)
+    #  vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
+    #  vae.to(device)
+    vae = None
     rnn = MDNRNN.load_model('generated/mdnrnn.torch', z_size, n_hidden, n_gaussians)
     rnn.to(device)
 
@@ -56,12 +57,13 @@ def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_
         reward, steps = agent.rollout(show=show)
         pbar.set_description("Epoch [{}/{}]".format(epoch + 1, epochs))
         pbar.write("Reward: {:.3f}".format(reward))
-        plot_data.append(reward)
+        plot_data.append((steps, reward))
 
     controller.save_model("generated/actor_critic.torch")
     torch.save(plot_data, plot_path)
     plot = go.Figure()
-    plot.add_trace(go.Scatter(x=np.arange(len(plot_data)), y=np.array(plot_data)))
+    x, y = zip(*plot_data)
+    plot.add_trace(go.Scatter(x=np.arange(len(plot_data)), y=np.array(y)))
     plot.show()
 
 
