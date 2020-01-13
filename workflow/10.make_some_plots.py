@@ -54,7 +54,9 @@ paths = [
         #  'new_plots/error_1e-3_v2.torch',
         #  'new_plots/error_init_clamped_1e-3.torch',
         #  'new_plots/error_init_clamped_1e-3_v2.torch',
-        'new_plots/error_decr_1e-3.torch',
+        #  'new_plots/error_decr_1e-3.torch',
+        
+        'new_plots/classic_iterative_100_1e-3.torch',
     ]
 
 

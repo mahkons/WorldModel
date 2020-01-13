@@ -21,7 +21,7 @@ device = torch.device("cpu")
 
 epochs = 500
 seqlen = 16
-BATCH_SIZE = 5 #TODO add padding to input
+BATCH_SIZE = 16
 
 plot_data = list()
 
@@ -72,6 +72,8 @@ if __name__ == "__main__":
     device = torch.device(args.device)
 
     z = torch.load("generated/z.torch")
+    elems = z.shape[0]
+    z = z[:(elems // BATCH_SIZE) * BATCH_SIZE, :, :]
 
     z = z.view(BATCH_SIZE, -1, z.size(2)).to(device)
     train(z, args.epochs, args.restart, args.device, args.learning_rate)

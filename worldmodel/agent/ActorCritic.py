@@ -143,4 +143,7 @@ class ControllerAC(nn.Module):
     @staticmethod
     def load_model(path, *args, **kwargs):
         cnt = torch.load(path, map_location='cpu')
+        cnt.to(cnt.device)
+        cnt.actor_optimizer = torch.optim.Adam(cnt.actor.parameters(), lr=kwargs['actor_lr'])
+        cnt.critic_optimizer = torch.optim.Adam(cnt.critic.parameters(), lr=kwargs['critic_lr'])
         return cnt

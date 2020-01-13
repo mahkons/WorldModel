@@ -42,14 +42,18 @@ def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_
     rnn.to(device)
 
     controller = ControllerAC(state_sz, action_sz, n_hidden, memory=memory, device=device)
+    controller.to(device)
     plot_data = list()
 
     if not restart:
         #TODO reload on cuda fails
         controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, n_hidden, memory=memory, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
-        controller.to(device)
+        #TODO just clean?
+        controller.memory.clean()
 
+        controller.to(device)
         plot_data = torch.load(plot_path)
+
     agent = Agent(env, vae, rnn, controller, device=device)
 
     pbar = tqdm(range(epochs))
