@@ -5,7 +5,7 @@ import torchvision.transforms as T
 import torch.nn.functional as F
 
 from worldmodel.agent.ReplayMemory import Transition
-from workflow.params import GAMMA, TAU, BATCH_SIZE
+from workflow.params import GAMMA, TAU, BATCH_SIZE, PRIORITY_DECR
 
 
 class Actor(nn.Module):
@@ -106,7 +106,8 @@ class ControllerAC(nn.Module):
             expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
             td_error = (expected_state_action_values.unsqueeze(1) - state_action_values).squeeze(1)
             #  td_error = td_error.clamp(-1, 1) # TODO remove or not clamp
-            self.memory.update(positions, self.combine_errors(torch.abs(td_error), torch.abs(model_error)))
+            #  self.memory.update(positions, self.combine_errors(torch.abs(td_error), torch.abs(model_error)))
+            self.memory.update(positions, torch.tensor(self.memory.get_priorities(positions)) / PRIORITY_DECR)
 
         weights = weights.to(self.device)
         loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)

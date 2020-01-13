@@ -1,9 +1,16 @@
 import plotly as plt
 import plotly.graph_objects as go
+import argparse
 
 import torch
 import numpy as np
 from statistics import mean
+
+def create_parser():
+    parser = argparse.ArgumentParser()
+    parser.add_argument('--steps', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
+    parser.add_argument('--avg', type=int, default=100, required=False)
+    return parser 
 
 paths = [
         #  'plots/classic_1e-2.torch', 
@@ -36,15 +43,17 @@ paths = [
         #  'plots/error_p1_wy0.25_long.torch',
         #  'plots/error_p1_wy0.5_long_v4.torch',
         #  'plots/error_p1_wy3_long.torch',
-        #  'plots/car_classic_1e-3.torch',
+        'plots/car_classic_1e-3.torch',
     
 
-        'new_plots/classic_1e-3.torch',
-        'new_plots/classic_1e-3_v2.torch',
-        'new_plots/prioritized_1e-3.torch',
-        'new_plots/prioritized_1e-3_v2.torch',
-        'new_plots/error_1e-3.torch',
-        'new_plots/error_1e-3_v2.torch',
+        #  'new_plots/classic_1e-3.torch',
+        #  'new_plots/classic_1e-3_v2.torch',
+        #  'new_plots/prioritized_1e-3.torch',
+        #  'new_plots/prioritized_1e-3_v2.torch',
+        #  'new_plots/error_1e-3.torch',
+        #  'new_plots/error_1e-3_v2.torch',
+        #  'new_plots/error_init_clamped_1e-3.torch',
+        #  'new_plots/error_init_clamped_1e-3_v2.torch',
     ]
 
 
@@ -58,16 +67,21 @@ def add_avg_trace(plot, x, y, name, avg_epochs=100):
 
 
 if __name__ == "__main__":
+    args = create_parser().parse_args()
     data = [torch.load(path) for path in paths]
     plot = go.Figure()
 
-
     for (plot_data, path) in zip(data, paths):
-        x, y = zip(*plot_data)
-        x, y = np.array(x), np.array(y)
+        if path.startswith('plots'):
+            y = np.array(plot_data)
+            x = np.arange(len(y))
+        else:
+            x, y = zip(*plot_data)
+            x, y = np.array(x), np.array(y)
         for i in range(1, len(x)):
             x[i] += x[i - 1]
-        #  x = np.arange(len(x))
-        add_avg_trace(plot, x, y, path)
+        if not args.steps:
+            x = np.arange(len(x))
+        add_avg_trace(plot, x, y, path, args.avg)
 
     plot.show()
