@@ -82,9 +82,10 @@ class ControllerAC(nn.Module):
 
 
     def combine_errors(self, xs, ys):
+        return ys
         p = 1
         eps = 1e-9
-        wy = 0.5
+        wy = 0
 
         return ((xs + eps) ** p + (ys * wy + eps) ** p) ** (1. / p)
 

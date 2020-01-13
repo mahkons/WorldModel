@@ -21,7 +21,7 @@ device = torch.device("cpu")
 
 epochs = 500
 seqlen = 16
-BATCH_SIZE = 32 #TODO add padding to input
+BATCH_SIZE = 5 #TODO add padding to input
 
 plot_data = list()
 
