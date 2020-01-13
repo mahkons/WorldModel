@@ -43,17 +43,18 @@ paths = [
         #  'plots/error_p1_wy0.25_long.torch',
         #  'plots/error_p1_wy0.5_long_v4.torch',
         #  'plots/error_p1_wy3_long.torch',
-        'plots/car_classic_1e-3.torch',
+        #  'plots/car_classic_1e-3.torch',
     
 
-        #  'new_plots/classic_1e-3.torch',
+        'new_plots/classic_1e-3.torch',
         #  'new_plots/classic_1e-3_v2.torch',
         #  'new_plots/prioritized_1e-3.torch',
-        #  'new_plots/prioritized_1e-3_v2.torch',
+        'new_plots/prioritized_1e-3_v2.torch',
         #  'new_plots/error_1e-3.torch',
         #  'new_plots/error_1e-3_v2.torch',
         #  'new_plots/error_init_clamped_1e-3.torch',
         #  'new_plots/error_init_clamped_1e-3_v2.torch',
+        'new_plots/error_decr_1e-3.torch',
     ]
 
 
@@ -78,8 +79,8 @@ if __name__ == "__main__":
         else:
             x, y = zip(*plot_data)
             x, y = np.array(x), np.array(y)
-        for i in range(1, len(x)):
-            x[i] += x[i - 1]
+            for i in range(1, len(x)):
+                x[i] += x[i - 1]
         if not args.steps:
             x = np.arange(len(x))
         add_avg_trace(plot, x, y, path, args.avg)

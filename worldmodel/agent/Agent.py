@@ -29,13 +29,6 @@ class Agent:
         self.action_sz = self.controller.action_sz
         self.z_size = z_size
 
-    def resize_obs(self, obs):
-        transform = T.Compose([
-            T.ToPILImage(),
-            T.ToTensor(),
-        ])
-        return transform(obs).to(self.device).unsqueeze(0)
-
     #  TODO
     #  code for carRacing. find better way
     #  def transform_obs(self, obs):

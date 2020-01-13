@@ -82,6 +82,7 @@ class ControllerAC(nn.Module):
 
 
     def combine_errors(self, xs, ys):
+        return xs
         return ys
         p = 1
         eps = 1e-9
@@ -106,8 +107,7 @@ class ControllerAC(nn.Module):
             expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
             td_error = (expected_state_action_values.unsqueeze(1) - state_action_values).squeeze(1)
             #  td_error = td_error.clamp(-1, 1) # TODO remove or not clamp
-            #  self.memory.update(positions, self.combine_errors(torch.abs(td_error), torch.abs(model_error)))
-            self.memory.update(positions, torch.tensor(self.memory.get_priorities(positions)) / PRIORITY_DECR)
+            self.memory.update(positions, self.combine_errors(torch.abs(td_error), torch.abs(model_error)))
 
         weights = weights.to(self.device)
         loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)
@@ -132,6 +132,7 @@ class ControllerAC(nn.Module):
         self.actor_optimizer.step()
 
     def optimize(self):
+        #TODO Try prioritize actor
         self.optimize_critic()
         self.optimize_actor()
         self.soft_update()

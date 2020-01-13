@@ -54,3 +54,7 @@ class ReplayMemory:
 
     def __len__(self):
         return len(self.memory)
+
+    def clean(self):
+        self.memory = list()
+        self.position = 0

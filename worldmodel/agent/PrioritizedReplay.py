@@ -69,7 +69,7 @@ class PrioritizedReplayMemory:
         )
         self.priorities[self.position] = max(self.tree.get_max(), PRIORITY_EPS)
         #TODO delete after experiments
-        self.priorities[self.position] = model_error.item()
+        #  self.priorities[self.position] = model_error.item()
         self.tree.add(self.position, self.priorities[self.position])
         
         self.position += 1
@@ -113,3 +113,9 @@ class PrioritizedReplayMemory:
 
     def __len__(self):
         return len(self.memory)
+
+    def clean(self):
+        self.memory = list()
+        self.position = 0
+        self.tree = RangeTree(self.capacity)
+        self.priorities = np.empty((self.capacity, ))
