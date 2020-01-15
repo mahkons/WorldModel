@@ -29,12 +29,14 @@ def create_parser():
     parser.add_argument('--show', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     parser.add_argument('--restart', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
 
+    parser.add_argument('--no-train', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
+
     parser.add_argument('--memtype', type=str, default='Classic', required=False)
     parser.add_argument('--plot-path', type=str, default='generated/train_plot.torch', required=False)
     return parser
 
 
-def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_path):
+def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_path, no_train):
     #  vae = VAE.load_model('generated/vae.torch', image_channels=3, image_height=image_height, image_width=image_width)
     #  vae.to(device)
     vae = None
@@ -46,10 +48,10 @@ def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_
     plot_data = list()
 
     if not restart:
-        #TODO reload on cuda fails
         controller = ControllerAC.load_model("generated/actor_critic.torch", state_sz, action_sz, n_hidden, memory=memory, device=device, actor_lr=actor_lr, critic_lr=critic_lr)
         #TODO just clean?
-        controller.memory.clean()
+        if no_train:
+            controller.memory.clean()
 
         controller.to(device)
         plot_data = torch.load(plot_path)
@@ -58,7 +60,7 @@ def train(env, epochs, show, restart, action_sz, state_sz, memory, device, plot_
 
     pbar = tqdm(range(epochs))
     for epoch in pbar:
-        reward, steps = agent.rollout(show=show)
+        reward, steps = agent.rollout(show=show, train_agent=not no_train)
         pbar.set_description("Epoch [{}/{}]".format(epoch + 1, epochs))
         pbar.write("Reward: {:.3f}".format(reward))
         plot_data.append((steps, reward))
@@ -86,4 +88,4 @@ if __name__ == "__main__":
     action_sz = env.action_space.shape[0]
     state_sz = z_size
 
-    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, get_memory(args.memtype), torch.device(args.device), args.plot_path)
+    train(env, args.epochs, args.show, args.restart, action_sz, state_sz, get_memory(args.memtype), torch.device(args.device), args.plot_path, args.no_train)

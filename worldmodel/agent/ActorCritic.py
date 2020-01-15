@@ -5,7 +5,7 @@ import torchvision.transforms as T
 import torch.nn.functional as F
 
 from worldmodel.agent.ReplayMemory import Transition
-from workflow.params import GAMMA, TAU, BATCH_SIZE, PRIORITY_DECR
+from workflow.params import GAMMA, TAU, BATCH_SIZE, PRIORITY_DECR, MIN_MEMORY
 
 
 class Actor(nn.Module):
@@ -82,7 +82,7 @@ class ControllerAC(nn.Module):
 
 
     def combine_errors(self, xs, ys):
-        return xs
+        #  return xs
         return ys
         p = 1
         eps = 1e-9
@@ -91,7 +91,7 @@ class ControllerAC(nn.Module):
         return ((xs + eps) ** p + (ys * wy + eps) ** p) ** (1. / p)
 
     def optimize_critic(self):
-        if len(self.memory) < BATCH_SIZE:
+        if len(self.memory) < MIN_MEMORY:
             return
         positions, weights = self.memory.sample_positions(BATCH_SIZE)
         state, action, reward, next_state, done, model_error = self.memory.get_transitions(positions)

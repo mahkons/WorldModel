@@ -26,18 +26,9 @@ def create_parser():
     parser.add_argument('--with-agent', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     return parser 
 
-
-# TODO decide how to choose action
 def get_action_randomly(env, steps, obs):
     action = env.action_space.sample()
     return action
-
-    if steps < 70:
-        action[0] = 0
-    action[1] = 1
-    action[2] = 0 
-    return action
-
 
 class GetActionWithAgent:
     def __init__(self, env, device):
@@ -87,6 +78,8 @@ def sample_rollouts(env, iters, steps, images, with_agent, get_action):
     cnt_iter = 0
     for episode in pbar:
         pbar.set_description('Episode [{}/{}]'.format(cnt_iter + 1, iters))
+        if cnt_iter > iters:
+            break
 
         if with_agent:
             get_action.init_hidden()
@@ -99,6 +92,7 @@ def sample_rollouts(env, iters, steps, images, with_agent, get_action):
                 env.render()
             if done:
                 cnt_iter += t
+                episode += t
                 pbar.update(t)
                 break
 

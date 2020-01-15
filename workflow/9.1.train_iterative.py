@@ -1,5 +1,6 @@
 import subprocess
 import argparse
+from tqdm import tqdm
 
 def create_parser():
     parser = argparse.ArgumentParser()
@@ -19,7 +20,11 @@ def create_parser():
 if __name__ == '__main__':
     args = create_parser().parse_args()
 
-    subprocess.call(["python3", "1.sample_rollouts.py", "--iters=" + str(args.iters_sample), "--device=" + args.device])
+    subprocess.call(["python3", "1.sample_rollouts.py",
+        "--iters=" + str(args.iters_sample),
+        "--device=" + args.device,
+        "--with-agent=" + str(not args.restart)
+        ])
     subprocess.call(["python3", "5.train_model.py", 
         "--epochs=" + str(args.epochs_model),
         "--device=" + args.device,
@@ -33,8 +38,12 @@ if __name__ == '__main__':
         "--restart=" + str(args.restart)
         ])
 
-    for _ in range(1, args.iters):
-        subprocess.call(["python3", "1.sample_rollouts.py", "--iters=" + str(args.iters_sample), "--device=" + args.device, "--with-agent=True"])
+    for _ in tqdm(range(1, args.iters)):
+        subprocess.call(["python3", "1.sample_rollouts.py",
+            "--iters=" + str(args.iters_sample),
+            "--device=" + args.device,
+            "--with-agent=True"
+            ])
         subprocess.call(["python3", "5.train_model.py", 
             "--epochs=" + str(args.epochs_model),
             "--device=" + args.device

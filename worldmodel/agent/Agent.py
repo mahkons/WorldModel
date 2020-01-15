@@ -57,7 +57,7 @@ class Agent:
     def wrap(self, x):
         return torch.tensor([x], dtype=torch.float, device=self.device)
 
-    def rollout(self, show=False):
+    def rollout(self, show=False, train_agent=True):
         state = self.transform_obs(self.env.reset())
         hidden = self.rnn.init_hidden(1, self.device)
         state = self.add_hidden(state, hidden)
@@ -84,7 +84,8 @@ class Agent:
 
             self.controller.memory.push(state, action, next_state, reward, self.wrap(done), self.wrap(model_error))
             state, hidden = next_state, next_hidden
-            self.controller.optimize()
+            if train_agent:
+                self.controller.optimize()
 
             steps = t + 1
             if done:

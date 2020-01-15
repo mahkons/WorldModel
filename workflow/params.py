@@ -17,6 +17,7 @@ mem_size = 20 * 1000
 
 GAMMA = 0.99
 BATCH_SIZE = 64
+MIN_MEMORY = 64
 TAU = 0.002
 
 # memory
