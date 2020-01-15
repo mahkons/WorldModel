@@ -12,6 +12,7 @@ from torchvision import datasets
 from torchvision.utils import make_grid
 
 from worldmodel.VAE.VAE import VAE
+from params import image_height, image_width
 
 def show(img):
     npimg = img.numpy()
@@ -26,5 +27,5 @@ def compare(model, dataset):
 
 if __name__ == "__main__":
     dataset = datasets.ImageFolder(root='rollouts', transform=transforms.ToTensor())
-    vae = VAE.load_model("generated/vae.torch", image_height=96, image_width=96)
+    vae = VAE.load_model("generated/vae.torch", image_height=image_height, image_width=image_width)
     compare(vae, dataset)

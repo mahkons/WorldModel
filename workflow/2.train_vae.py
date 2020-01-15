@@ -11,15 +11,14 @@ import plotly.graph_objects as go
 import numpy as np
 
 from worldmodel.VAE.VAE import VAE
+from params import image_height, image_width
 
 BATCH_SIZE = 32
-HEIGHT = 96
-WIDTH = 96
 plot_data = list()
 
 def create_parser():
     parser = argparse.ArgumentParser()
-    parser.add_argument('--epochs', type=int, default=1, required=False)
+    parser.add_argument('--epochs', type=int, default=3, required=False)
     parser.add_argument('--restart', type=lambda x: (str(x).lower() in ['true','1', 'yes']), default=False, required=False)
     parser.add_argument('--device', type=str, default='cpu', required=False)
     parser.add_argument('--learning-rate', type=float, default=1e-3, required=False)
@@ -27,7 +26,7 @@ def create_parser():
 
 
 def train(epochs, restart, device, dataloader, learning_rate):
-    model = VAE(image_height=HEIGHT, image_width=WIDTH, device=device)
+    model = VAE(image_height=image_height, image_width=image_width, device=device)
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate)
     if not restart:
         model.load_state_dict(torch.load("generated/vae.torch", map_location='cpu'))
