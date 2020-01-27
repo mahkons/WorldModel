@@ -11,13 +11,14 @@ n_hidden = 256
 n_gaussians = 5
 
 # Agent
-actor_lr = 1e-3
+actor_lr = 1e-2
 critic_lr = 1e-3
 mem_size = 20 * 1000
 
 GAMMA = 0.99
 BATCH_SIZE = 64
 MIN_MEMORY = 64
+assert(MIN_MEMORY >= BATCH_SIZE)
 TAU = 0.002
 
 # memory
@@ -26,7 +27,7 @@ PRIORITY_ALPHA = 0.5
 
 BETA_START = 0.4
 BETA_END = 1
-BETA_DECAY = 2000
+BETA_DECAY = 20000
 
 
 #unused

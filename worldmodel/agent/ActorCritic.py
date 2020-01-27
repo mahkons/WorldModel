@@ -80,61 +80,50 @@ class ControllerAC(nn.Module):
         self.soft_update_net(self.actor, self.target_actor)
         self.soft_update_net(self.critic, self.target_critic)
 
+    def combine_errors(self, td_error, model_error):
+        #  return td_error
+        return model_error
 
-    def combine_errors(self, xs, ys):
-        #  return xs
-        return ys
-        p = 1
-        eps = 1e-9
-        wy = 0
-
-        return ((xs + eps) ** p + (ys * wy + eps) ** p) ** (1. / p)
-
-    def optimize_critic(self):
-        if len(self.memory) < MIN_MEMORY:
-            return
-        positions, weights = self.memory.sample_positions(BATCH_SIZE)
+    def optimize_critic(self, positions, weights):
         state, action, reward, next_state, done, model_error = self.memory.get_transitions(positions)
 
         state_action_values = self.critic(state, action)
         with torch.no_grad():
-            noise = torch.empty(action.shape).data.normal_(0, 0.2).to(self.device) # from SafeWorld. #TODO for exploration?
+            noise = torch.empty(action.shape).data.normal_(0, 0.2).to(self.device) # from SafeWorld
             noise = noise.clamp(-0.5, 0.5)
 
             next_action = (self.target_actor(next_state) + noise).clamp(-1., 1.)
             next_values = self.target_critic(next_state, next_action).squeeze(1)
         
             expected_state_action_values = (next_values * GAMMA * (1 - done)) + reward
-            td_error = (expected_state_action_values.unsqueeze(1) - state_action_values).squeeze(1)
-            #  td_error = td_error.clamp(-1, 1) # TODO remove or not clamp
+            td_error = (expected_state_action_values.unsqueeze(1) - state_action_values).squeeze(1) # TODO clamp add?
             self.memory.update(positions, self.combine_errors(torch.abs(td_error), torch.abs(model_error)))
 
-        weights = weights.to(self.device)
-        loss = F.smooth_l1_loss(state_action_values * weights, expected_state_action_values.unsqueeze(1) * weights)
+        loss = F.smooth_l1_loss(state_action_values.squeeze() * weights, expected_state_action_values * weights)
 
         self.critic_optimizer.zero_grad()
         loss.backward()
         self.critic_optimizer.step()
 
-    def optimize_actor(self):
-        if len(self.memory) < BATCH_SIZE:
-            return
-
-        positions = self.memory.sample_positions_uniform(BATCH_SIZE)
+    def optimize_actor(self, positions, weights):
         state, action, reward, next_state, done, model_error = self.memory.get_transitions(positions)
         predicted_action = self.actor(state)
 
-        value = self.critic(state, predicted_action) * (1 - done) # TODO remove or not remove (1 - done)?
-        loss = -torch.sum(value, dim=1).mean()
+        value = self.critic(state, predicted_action) # TODO remove or not remove (1 - done)?
+        loss = -(value.squeeze() * weights).mean()
         
         self.actor_optimizer.zero_grad()
         loss.backward()
         self.actor_optimizer.step()
 
     def optimize(self):
-        #TODO Try prioritize actor
-        self.optimize_critic()
-        self.optimize_actor()
+        if len(self.memory) < MIN_MEMORY:
+            return
+        positions, weights = self.memory.sample_positions(BATCH_SIZE)
+        weights = weights.to(self.device)
+
+        self.optimize_critic(positions, weights)
+        self.optimize_actor(positions, weights)
         self.soft_update()
 
     def save_model(self, path):
