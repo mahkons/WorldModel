@@ -80,15 +80,9 @@ class ControllerAC(nn.Module):
         self.soft_update_net(self.actor, self.target_actor)
         self.soft_update_net(self.critic, self.target_critic)
 
-
-    def combine_errors(self, xs, ys):
-        return xs
-        return ys
-        p = 1
-        eps = 1e-9
-        wy = 0
-
-        return ((xs + eps) ** p + (ys * wy + eps) ** p) ** (1. / p)
+    def combine_errors(self, td_error, model_error):
+        #  return td_error
+        return model_error
 
     def optimize_critic(self, positions, weights):
         state, action, reward, next_state, done, model_error = self.memory.get_transitions(positions)

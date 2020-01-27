@@ -46,10 +46,10 @@ paths = [
         #  'plots/car_classic_1e-3.torch',
     
 
-        'new_plots/classic_1e-3.torch',
+        #  'new_plots/classic_1e-3.torch',
         #  'new_plots/classic_1e-3_v2.torch',
         #  'new_plots/prioritized_1e-3.torch',
-        'new_plots/prioritized_1e-3_v2.torch',
+        #  'new_plots/prioritized_1e-3_v2.torch',
         #  'new_plots/error_1e-3.torch',
         #  'new_plots/error_1e-3_v2.torch',
         #  'new_plots/error_init_clamped_1e-3.torch',
@@ -59,13 +59,18 @@ paths = [
         #  'new_plots/error_init_upd_v2.torch',
         #  'new_plots/prioritized_upd_v1.torch',
         #  'new_plots/classic_upd.torch',
-            'new_plots/classic_iterative_100.torch',
-            'new_plots/prioritized_iterative_100.torch',
-            'new_plots/modelerror_iterative_100.torch',
+        
+        #  'new_plots/classic_iterative_100.torch',
+        #  'new_plots/prioritized_iterative_100.torch',
+        #  'new_plots/modelerror_iterative_100.torch',
         
         #  'new_plots/classic_iterative_100_1e-3.torch',
         #  'new_plots/prioritized_iterative_100.torch',
         #  'new_plots/modelerror_iterative_100.torch',
+
+        'new_plots/prioritized_upd_new_params_v2.torch',
+        'new_plots/classic_upd_new_params_v2.torch',
+        'new_plots/error_upd_new_params_v2.torch',
     ]
 
 

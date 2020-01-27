@@ -69,7 +69,7 @@ class PrioritizedReplayMemory:
         )
         self.priorities[self.position] = max(self.tree.get_max(), PRIORITY_EPS)
         #TODO delete after experiments
-        #  self.priorities[self.position] = (model_error.item() + PRIORITY_EPS) ** PRIORITY_ALPHA
+        self.priorities[self.position] = (model_error.item() + PRIORITY_EPS) ** PRIORITY_ALPHA
         self.tree.add(self.position, self.priorities[self.position])
         
         self.position += 1
